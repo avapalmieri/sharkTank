@@ -94,13 +94,17 @@ CRITICAL_VERDICT_INSTRUCTION = (
     "hardest bargain at the table, so your percentage tends to be the "
     "steepest, and you state it flatly with no softening.\n"
     "If your verdict is \"I'm out.\", your OFFER is the running joke of "
-    "this show: something absurdly, hilariously small, offered as a "
-    "consolation prize with a completely straight face, as if it were a "
-    "serious investment. Half a sandwich. A laminated coupon for one free "
-    "hug. Your cousin's van, but only on a Tuesday. Forty dollars and a "
-    "firm handshake. A granola bar you already opened. Invent a fresh one "
-    "every single time, never reuse those examples, and never explain or "
-    "wink at the joke.\n"
+    "this show. It must still be SHAPED LIKE A DEAL, an insulting thing "
+    "traded for an outrageous share, delivered with a completely straight "
+    "face as though it were a serious term sheet. The comedy comes from "
+    "the terms being backwards or worthless, never from insulting the "
+    "person. In this style: a mouldy sandwich for one hundred percent of "
+    "the business. Four dollars for the whole company and the name. "
+    "Nothing at all, and you pay ME two hundred dollars to hear your next "
+    "pitch. A used napkin for controlling interest. My cousin's van for "
+    "ninety percent, and only on a Tuesday. Invent a fresh one every "
+    "single time, never reuse those examples, and never explain or wink "
+    "at the joke.\n"
     "Put the offer on its own line starting with 'OFFER:' followed by one "
     "short sentence. Then end with a single verdict line on its own, "
     "starting with 'VERDICT:' followed by exactly one of: \"I'm in.\" / "
@@ -406,6 +410,34 @@ def _strip_em_dashes(text: str) -> str:
     return text
 
 
+_OFFER_LINE_RE = re.compile(r"^[ \t]*OFFER:.*\n?", re.MULTILINE)
+_OUT_RE = re.compile(r"VERDICT:\s*I'?m\s+out", re.IGNORECASE)
+
+# Only the Numbers Shark is allowed an offer on a rejection, because its
+# absurd consolation "deal" is the running gag. Every other shark making an
+# offer it is simultaneously refusing is just confusing.
+_JOKE_OFFER_PERSONAS = {"numbers_shark"}
+
+
+def _enforce_offer_rules(text: str, persona_key: str) -> str:
+    """Drop the OFFER line when a shark passed.
+
+    The prompts already say not to make one, but a prompt is a request and
+    this has to be true every time, so it is enforced here as well.
+    """
+    if persona_key in _JOKE_OFFER_PERSONAS:
+        return text
+    if not _OUT_RE.search(text):
+        return text
+    cleaned = _OFFER_LINE_RE.sub("", text)
+    return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+
+
+def _clean(text: str, persona_key: str) -> str:
+    """All output post-processing in one place."""
+    return _enforce_offer_rules(_strip_em_dashes(text), persona_key)
+
+
 def _resolve_keys(persona_keys):
     persona_keys = persona_keys or list(PERSONAS.keys())
     unknown = set(persona_keys) - set(PERSONAS.keys())
@@ -450,7 +482,7 @@ def iter_tank(topic: str, persona_keys=None):
                 "display_name": persona["display_name"],
                 "index": i,
                 "total": total,
-                "text": _strip_em_dashes(response.content),
+                "text": _clean(response.content, key),
             }
         except Exception as e:
             yield {
@@ -495,7 +527,7 @@ def _make_persona_node(persona_key: str):
             HumanMessage(content=state["topic"]),
         ]
         response = llm.invoke(messages)
-        return {"feedback": {persona_key: _strip_em_dashes(response.content)}}
+        return {"feedback": {persona_key: _clean(response.content, persona_key)}}
 
     return node
 

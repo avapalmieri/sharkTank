@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The Tank — UI Preview</title>
+<title>The Tank: UI Preview</title>
 <style>
   :root {
     color-scheme: dark;
@@ -576,6 +576,102 @@
   }
   .offer-text { color: var(--text-primary); }
 
+  /* ---------- conditional deal buttons ---------- */
+  .deal-choice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .deal-q {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .deal-btn {
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    min-height: 40px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-strong);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .deal-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .deal-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .deal-yes.active {
+    background: color-mix(in srgb, var(--good) 22%, transparent);
+    border-color: var(--good);
+    color: #6fe36f;
+  }
+  .deal-no.active {
+    background: color-mix(in srgb, var(--critical) 22%, transparent);
+    border-color: var(--critical);
+    color: #ff9d9d;
+  }
+
+  /* ---------- offers recap ---------- */
+  .recap {
+    margin: 34px auto 0;
+    padding: 20px 22px;
+    max-width: 720px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+  }
+  .recap-title {
+    margin: 0 0 14px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .recap-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .recap-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 6px 10px;
+  }
+  .recap-name { font-weight: 700; font-size: 0.9rem; }
+  .recap-offer {
+    grid-column: 2 / -1;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .recap-badge {
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .recap-badge.good     { background: color-mix(in srgb, var(--good) 18%, transparent);     color: #6fe36f; }
+  .recap-badge.warning  { background: color-mix(in srgb, var(--warning) 18%, transparent);  color: #ffcf6b; }
+  .recap-badge.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: #ff9d9d; }
+  .recap-total {
+    margin: 16px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+  }
+  .recap-total strong { color: var(--text-primary); font-size: 1.05rem; }
+  @media (min-width: 560px) {
+    .recap-row { grid-template-columns: auto auto 1fr auto; }
+    .recap-offer { grid-column: auto; }
+  }
+
   .verdict {
     display: inline-flex;
     /* a long conditional verdict wraps onto several lines on a phone;
@@ -595,7 +691,7 @@
   .verdict.good     { background: color-mix(in srgb, var(--good) 18%, transparent);     color: #6fe36f; }
   .verdict.warning  { background: color-mix(in srgb, var(--warning) 18%, transparent);  color: #ffcf6b; }
   .verdict.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: #ff9d9d; }
-  .verdict .verdict-text { color: var(--text-primary); font-weight: 500; }
+  .verdict .verdict-text { color: var(--text-primary); font-weight: 500; margin-left: 2px; }
 
   .card.out-hit::after {
     content: "";
@@ -680,7 +776,7 @@
     <span class="kicker">Multi-agent idea &amp; pitch review</span>
     <h1><img class="wordmark" src="img/logo.png" alt="The Tank" onerror="this.closest('h1').classList.add('logo-missing'); this.remove();"><span class="wordmark-text">THE TANK</span></h1>
     <p class="sub">Pitch any idea, product, or project. Good idea or bad idea, and why, with no pricing or margins required. Five sharks weigh in one at a time, each with their own take and their own offer on the table. Four of them want you to win. One of them takes some convincing.</p>
-    <div class="demo-banner"><strong>UI preview only.</strong> This page simulates the one-at-a-time reveal with canned responses and a fake thinking delay — the real app streams live Claude responses from the FastAPI backend, one shark at a time, for real. Click "Enter the tank" to run it again.</div>
+    <div class="demo-banner"><strong>UI preview only.</strong> This page simulates the one-at-a-time reveal with canned responses and a fake thinking delay. The real app streams live Claude responses from the FastAPI backend, one shark at a time, for real. Click "Enter the tank" to run it again.</div>
   </header>
 
   <section class="pitch-panel">
@@ -771,7 +867,7 @@ const MOCK_FEEDBACK = {
   "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. There's real charm here and I want in on it.\nOFFER: $60,000 for 15%, and I'll name it and design the whole look myself.\nVERDICT: I'm in.",
   "The Scale Shark": "The neighborhood trust you've built is genuinely valuable, and I don't want to talk you out of that. What stops me is that this caps out at however many Saturdays one person has, and I haven't heard how it grows past you. Come back with a second walker trained and booked and I'm right back at this table.\nVERDICT: I'm out.",
   "The Product Shark": "The photo update idea is the part I keep thinking about, that's the kind of small detail owners actually screenshot and send to friends. My bar here is high and what I need is proof people come back a second and third time, not just try it once. Show me that and this gets a lot more interesting to me.\nOFFER: $75,000 for 18%, half released once you've walked fifty dogs.\nVERDICT: I'm in, but only if you can show me repeat bookings.",
-  "The Numbers Shark": "Everyone here loves this, which is usually my first warning sign. Weekend dog walking is fine right up until two people book the same Saturday, and then it is just you apologizing to someone holding a leash. Tell me what happens on the second Saturday.\nOFFER: A laminated coupon for one free hug and my cousin's van, but only on a Tuesday.\nVERDICT: I'm out.",
+  "The Numbers Shark": "Everyone here loves this, which is usually my first warning sign. Weekend dog walking is fine right up until two people book the same Saturday, and then it is just you apologizing to someone holding a leash. Tell me what happens on the second Saturday.\nOFFER: A mouldy sandwich for one hundred percent of the business.\nVERDICT: I'm out.",
 };
 
 const OFFER_ICON = '<path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><line x1="12" y1="21" x2="12" y2="7"/><path d="M12 7A2.5 2.5 0 1 1 9.5 4.5 2.5 2.5 0 0 1 12 7Z"/><path d="M12 7a2.5 2.5 0 1 0 2.5-2.5A2.5 2.5 0 0 0 12 7Z"/>';
@@ -1044,6 +1140,169 @@ function addBiteMark(card) {
   }
 }
 
+// ---------- deal state ----------
+// Verdicts are held in a map rather than tallied incrementally, because a
+// conditional can be flipped by the user at any time and the blood level,
+// the circling sharks, the stamp and the recap all have to recompute from
+// whatever the CURRENT set of verdicts is.
+const VERDICT_STATE = {};   // key -> "good" | "warning" | "critical"
+const OFFERS = {};          // key -> offer text, if the shark made one
+
+function resetDealState() {
+  Object.keys(VERDICT_STATE).forEach((k) => delete VERDICT_STATE[k]);
+  Object.keys(OFFERS).forEach((k) => delete OFFERS[k]);
+  const old = document.getElementById("recap");
+  if (old) old.remove();
+}
+
+function currentTally() {
+  const levels = Object.values(VERDICT_STATE);
+  const t = { good: 0, warning: 0, critical: 0, total: levels.length };
+  levels.forEach((l) => { t[l]++; });
+  return t;
+}
+
+// Add/remove only what changed, so sharks already circling keep their
+// place in the animation instead of jumping back to the start.
+function syncSwimmers() {
+  const outKeys = Object.keys(VERDICT_STATE).filter((k) => VERDICT_STATE[k] === "critical");
+  const existing = new Map();
+  document.querySelectorAll(".swim-shark:not(.approach)").forEach((el) => {
+    existing.set(el.dataset.sharkKey, el);
+  });
+  existing.forEach((el, k) => { if (!outKeys.includes(k)) el.remove(); });
+  outKeys.forEach((k, i) => {
+    if (!existing.has(k) && SHARK_META[k]) spawnSwimmingShark(i, SHARK_META[k].color, { key: k });
+  });
+}
+
+function recomputeOutcome({ restamp = false } = {}) {
+  const t = currentTally();
+  bumpBloodLevel(t.critical);
+  syncSwimmers();
+  renderOfferRecap();
+  if (restamp) {
+    const existing = document.querySelector(".stamp-overlay");
+    if (existing) existing.remove();
+    if (t.total > 0) showStamp(t);
+  }
+}
+
+// ---------- accepting or refusing a conditional ----------
+
+function appendDealChoice(card, key) {
+  const wrap = document.createElement("div");
+  wrap.className = "deal-choice";
+  wrap.innerHTML =
+    '<span class="deal-q">Your call:</span>' +
+    '<button type="button" class="deal-btn deal-yes" data-accept="1">Accept the deal</button>' +
+    '<button type="button" class="deal-btn deal-no" data-accept="0">Walk away</button>';
+  wrap.querySelectorAll(".deal-btn").forEach((b) => {
+    b.addEventListener("click", () => resolveDeal(key, b.dataset.accept === "1"));
+  });
+  card.appendChild(wrap);
+}
+
+function resolveDeal(key, accepted) {
+  const card = document.getElementById(`card-${key}`);
+  if (!card) return;
+  const level = accepted ? "good" : "critical";
+  const changed = VERDICT_STATE[key] !== level;
+  VERDICT_STATE[key] = level;
+
+  const verdictEl = card.querySelector(".verdict");
+  if (verdictEl) {
+    // dataset.condition holds the whole verdict ("I'm in, but only if you
+    // show me X"), so trim the lead-in and keep just the condition itself.
+    const cond = (card.dataset.condition || "").replace(/^.*?but only if\s*/i, "").trim();
+    const text = accepted
+      ? (cond ? `Deal accepted, on the condition that ${cond}` : "Deal accepted.")
+      : "You walked away from this one.";
+    verdictEl.className = `verdict ${level}`;
+    verdictEl.innerHTML =
+      `${iconSvg(VERDICT_ICONS[level])}<span>${accepted ? "IN" : "OUT"}</span>` +
+      `<span class="verdict-text">${text}</span>`;
+  }
+
+  // Walking away means there is no deal, so the offer goes with it.
+  const offerEl = card.querySelector(".offer");
+  if (offerEl) {
+    offerEl.style.display = accepted ? "" : "none";
+    offerEl.className = "offer offer-good";
+  }
+
+  card.querySelectorAll(".deal-btn").forEach((b) => {
+    b.classList.toggle("active", (b.dataset.accept === "1") === accepted);
+  });
+
+  setProgressState(key, level);
+  if (accepted) {
+    card.classList.remove("out-hit");
+    if (changed) { spawnConfetti(card); playChime(); }
+  } else if (changed) {
+    playJawsSting();
+    addBiteMark(card);
+  }
+  recomputeOutcome({ restamp: true });
+}
+
+// ---------- offers recap ----------
+
+function moneyIn(offerText) {
+  const m = (offerText || "").replace(/,/g, "").match(/\$\s*([\d.]+)\s*(k|m|million|thousand)?/i);
+  if (!m) return 0;
+  let n = parseFloat(m[1]);
+  if (!isFinite(n)) return 0;
+  const unit = (m[2] || "").toLowerCase();
+  if (unit === "k" || unit === "thousand") n *= 1e3;
+  if (unit === "m" || unit === "million") n *= 1e6;
+  return n;
+}
+
+// index.html loads persona names from /personas into allPersonas; demo.html
+// has no server and uses MOCK_PERSONAS. typeof guards keep this one shared
+// helper valid in both files even though only one of those names exists.
+function personaName(key) {
+  const src = (typeof allPersonas !== "undefined" && allPersonas) ||
+              (typeof MOCK_PERSONAS !== "undefined" && MOCK_PERSONAS) || {};
+  return (src[key] && src[key].display_name) || key;
+}
+
+function renderOfferRecap() {
+  const board = document.getElementById("board");
+  const old = document.getElementById("recap");
+  if (old) old.remove();
+
+  const keys = Object.keys(OFFERS).filter((k) => VERDICT_STATE[k] !== "critical" || k === "numbers_shark");
+  if (!keys.length) return;
+
+  let total = 0;
+  const rows = keys.map((key) => {
+    const level = VERDICT_STATE[key] || "warning";
+    const name = personaName(key);
+    const joke = level === "critical";
+    if (level === "good") total += moneyIn(OFFERS[key]);
+    const badge = joke ? "NO DEAL" : level === "warning" ? "PENDING" : "ACCEPTED";
+    const badgeCls = joke ? "critical" : level === "warning" ? "warning" : "good";
+    return `<li class="recap-row">
+      ${avatarHtml(key, "sm")}
+      <span class="recap-name">${name}</span>
+      <span class="recap-offer">${OFFERS[key]}</span>
+      <span class="recap-badge ${badgeCls}">${badge}</span>
+    </li>`;
+  }).join("");
+
+  const totalRow = total > 0
+    ? `<p class="recap-total">On the table: <strong>$${total.toLocaleString("en-US")}</strong></p>`
+    : "";
+
+  const el = document.createElement("section");
+  el.id = "recap";
+  el.className = "recap";
+  el.innerHTML = `<h2 class="recap-title">Offers on the table</h2><ul class="recap-list">${rows}</ul>${totalRow}`;
+  board.insertAdjacentElement("afterend", el);
+}
+
 function tallyLabel(tally) {
   if (tally.total === 0) return null;
   if (tally.critical > tally.total / 2) return { type: "rejected", label: "STILL CIRCLING" };
@@ -1100,7 +1359,7 @@ async function fillCard(key, text) {
   // Defensive fallback — see static/index.html for the full explanation.
   // Kept in sync here so the demo's rendering logic matches the real app.
   if (!body) {
-    console.warn(`[shark:${key}] no reasoning text found before "VERDICT:" — showing raw response instead. Raw text:`, text);
+    console.warn(`[shark:${key}] no reasoning text found before "VERDICT:", showing raw response instead. Raw text:`, text);
     body = text.trim() || "(This shark responded with nothing at all.)";
   }
 
@@ -1115,6 +1374,7 @@ async function fillCard(key, text) {
   if (verdictRaw) ({ level, label } = classifyVerdict(verdictRaw));
 
   if (offerRaw) {
+    OFFERS[key] = offerRaw;
     const offerDiv = document.createElement("div");
     offerDiv.className = `offer offer-${level}`;
     offerDiv.innerHTML = `${iconSvg(OFFER_ICON)}<span class="offer-label">OFFER</span><span class="offer-text"></span>`;
@@ -1123,15 +1383,20 @@ async function fillCard(key, text) {
   }
 
   if (verdictRaw) {
+    card.dataset.condition = verdictRaw;
     const verdictDiv = document.createElement("div");
     verdictDiv.className = `verdict ${level}`;
-    verdictDiv.innerHTML = `${iconSvg(VERDICT_ICONS[level])}<span>${label}</span><span class="verdict-text">— ${verdictRaw}</span>`;
+    verdictDiv.innerHTML = `${iconSvg(VERDICT_ICONS[level])}<span>${label}</span><span class="verdict-text">${verdictRaw}</span>`;
     card.appendChild(verdictDiv);
   }
 
   if (level === "good") { spawnConfetti(card); playChime(); }
   else if (level === "warning") { playDing(); }
   else if (level === "critical") { playJawsSting(); shakeScreen(); addBiteMark(card); }
+
+  // A conditional is the only verdict the user gets a say in: they can
+  // accept the shark's condition and turn it into a yes, or walk away.
+  if (level === "warning") appendDealChoice(card, key);
 
   return level;
 }
@@ -1197,8 +1462,7 @@ async function ask() {
   renderProgressTrack(keys);
 
   btn.disabled = true;
-  let outCount = 0;
-  const tally = { good: 0, warning: 0, critical: 0, total: 0 };
+  resetDealState();
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
@@ -1213,17 +1477,14 @@ async function ask() {
     const text = MOCK_FEEDBACK[MOCK_PERSONAS[key].display_name];
     const level = await fillCard(key, text);
     setProgressState(key, level);
-    tally.total++;
-    tally[level]++;
-    if (level === "critical") {
-      outCount++;
-      bumpBloodLevel(outCount);
-      spawnSwimmingShark(outCount - 1, SHARK_META[key].color, { key });
-    }
+    VERDICT_STATE[key] = level;
+    recomputeOutcome();
   }
 
   statusEl.textContent = "";
-  if (tally.total > 0) showStamp(tally);
+  const finalTally = currentTally();
+  if (finalTally.total > 0) showStamp(finalTally);
+  renderOfferRecap();
   btn.disabled = false;
 }
 

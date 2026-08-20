@@ -594,6 +594,102 @@
   }
   .offer-text { color: var(--text-primary); }
 
+  /* ---------- conditional deal buttons ---------- */
+  .deal-choice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .deal-q {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .deal-btn {
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    min-height: 40px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-strong);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .deal-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .deal-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .deal-yes.active {
+    background: color-mix(in srgb, var(--good) 22%, transparent);
+    border-color: var(--good);
+    color: #6fe36f;
+  }
+  .deal-no.active {
+    background: color-mix(in srgb, var(--critical) 22%, transparent);
+    border-color: var(--critical);
+    color: #ff9d9d;
+  }
+
+  /* ---------- offers recap ---------- */
+  .recap {
+    margin: 34px auto 0;
+    padding: 20px 22px;
+    max-width: 720px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+  }
+  .recap-title {
+    margin: 0 0 14px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .recap-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .recap-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 6px 10px;
+  }
+  .recap-name { font-weight: 700; font-size: 0.9rem; }
+  .recap-offer {
+    grid-column: 2 / -1;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .recap-badge {
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .recap-badge.good     { background: color-mix(in srgb, var(--good) 18%, transparent);     color: #6fe36f; }
+  .recap-badge.warning  { background: color-mix(in srgb, var(--warning) 18%, transparent);  color: #ffcf6b; }
+  .recap-badge.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: #ff9d9d; }
+  .recap-total {
+    margin: 16px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+  }
+  .recap-total strong { color: var(--text-primary); font-size: 1.05rem; }
+  @media (min-width: 560px) {
+    .recap-row { grid-template-columns: auto auto 1fr auto; }
+    .recap-offer { grid-column: auto; }
+  }
+
   .verdict {
     display: inline-flex;
     /* a long conditional verdict wraps onto several lines on a phone;
@@ -613,7 +709,7 @@
   .verdict.good     { background: color-mix(in srgb, var(--good) 18%, transparent);     color: #6fe36f; }
   .verdict.warning  { background: color-mix(in srgb, var(--warning) 18%, transparent);  color: #ffcf6b; }
   .verdict.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: #ff9d9d; }
-  .verdict .verdict-text { color: var(--text-primary); font-weight: 500; }
+  .verdict .verdict-text { color: var(--text-primary); font-weight: 500; margin-left: 2px; }
 
   /* bite mark + drip, added to cards a shark rejects */
   .card.out-hit::after {
@@ -1054,6 +1150,169 @@ function addBiteMark(card) {
   }
 }
 
+// ---------- deal state ----------
+// Verdicts are held in a map rather than tallied incrementally, because a
+// conditional can be flipped by the user at any time and the blood level,
+// the circling sharks, the stamp and the recap all have to recompute from
+// whatever the CURRENT set of verdicts is.
+const VERDICT_STATE = {};   // key -> "good" | "warning" | "critical"
+const OFFERS = {};          // key -> offer text, if the shark made one
+
+function resetDealState() {
+  Object.keys(VERDICT_STATE).forEach((k) => delete VERDICT_STATE[k]);
+  Object.keys(OFFERS).forEach((k) => delete OFFERS[k]);
+  const old = document.getElementById("recap");
+  if (old) old.remove();
+}
+
+function currentTally() {
+  const levels = Object.values(VERDICT_STATE);
+  const t = { good: 0, warning: 0, critical: 0, total: levels.length };
+  levels.forEach((l) => { t[l]++; });
+  return t;
+}
+
+// Add/remove only what changed, so sharks already circling keep their
+// place in the animation instead of jumping back to the start.
+function syncSwimmers() {
+  const outKeys = Object.keys(VERDICT_STATE).filter((k) => VERDICT_STATE[k] === "critical");
+  const existing = new Map();
+  document.querySelectorAll(".swim-shark:not(.approach)").forEach((el) => {
+    existing.set(el.dataset.sharkKey, el);
+  });
+  existing.forEach((el, k) => { if (!outKeys.includes(k)) el.remove(); });
+  outKeys.forEach((k, i) => {
+    if (!existing.has(k) && SHARK_META[k]) spawnSwimmingShark(i, SHARK_META[k].color, { key: k });
+  });
+}
+
+function recomputeOutcome({ restamp = false } = {}) {
+  const t = currentTally();
+  bumpBloodLevel(t.critical);
+  syncSwimmers();
+  renderOfferRecap();
+  if (restamp) {
+    const existing = document.querySelector(".stamp-overlay");
+    if (existing) existing.remove();
+    if (t.total > 0) showStamp(t);
+  }
+}
+
+// ---------- accepting or refusing a conditional ----------
+
+function appendDealChoice(card, key) {
+  const wrap = document.createElement("div");
+  wrap.className = "deal-choice";
+  wrap.innerHTML =
+    '<span class="deal-q">Your call:</span>' +
+    '<button type="button" class="deal-btn deal-yes" data-accept="1">Accept the deal</button>' +
+    '<button type="button" class="deal-btn deal-no" data-accept="0">Walk away</button>';
+  wrap.querySelectorAll(".deal-btn").forEach((b) => {
+    b.addEventListener("click", () => resolveDeal(key, b.dataset.accept === "1"));
+  });
+  card.appendChild(wrap);
+}
+
+function resolveDeal(key, accepted) {
+  const card = document.getElementById(`card-${key}`);
+  if (!card) return;
+  const level = accepted ? "good" : "critical";
+  const changed = VERDICT_STATE[key] !== level;
+  VERDICT_STATE[key] = level;
+
+  const verdictEl = card.querySelector(".verdict");
+  if (verdictEl) {
+    // dataset.condition holds the whole verdict ("I'm in, but only if you
+    // show me X"), so trim the lead-in and keep just the condition itself.
+    const cond = (card.dataset.condition || "").replace(/^.*?but only if\s*/i, "").trim();
+    const text = accepted
+      ? (cond ? `Deal accepted, on the condition that ${cond}` : "Deal accepted.")
+      : "You walked away from this one.";
+    verdictEl.className = `verdict ${level}`;
+    verdictEl.innerHTML =
+      `${iconSvg(VERDICT_ICONS[level])}<span>${accepted ? "IN" : "OUT"}</span>` +
+      `<span class="verdict-text">${text}</span>`;
+  }
+
+  // Walking away means there is no deal, so the offer goes with it.
+  const offerEl = card.querySelector(".offer");
+  if (offerEl) {
+    offerEl.style.display = accepted ? "" : "none";
+    offerEl.className = "offer offer-good";
+  }
+
+  card.querySelectorAll(".deal-btn").forEach((b) => {
+    b.classList.toggle("active", (b.dataset.accept === "1") === accepted);
+  });
+
+  setProgressState(key, level);
+  if (accepted) {
+    card.classList.remove("out-hit");
+    if (changed) { spawnConfetti(card); playChime(); }
+  } else if (changed) {
+    playJawsSting();
+    addBiteMark(card);
+  }
+  recomputeOutcome({ restamp: true });
+}
+
+// ---------- offers recap ----------
+
+function moneyIn(offerText) {
+  const m = (offerText || "").replace(/,/g, "").match(/\$\s*([\d.]+)\s*(k|m|million|thousand)?/i);
+  if (!m) return 0;
+  let n = parseFloat(m[1]);
+  if (!isFinite(n)) return 0;
+  const unit = (m[2] || "").toLowerCase();
+  if (unit === "k" || unit === "thousand") n *= 1e3;
+  if (unit === "m" || unit === "million") n *= 1e6;
+  return n;
+}
+
+// index.html loads persona names from /personas into allPersonas; demo.html
+// has no server and uses MOCK_PERSONAS. typeof guards keep this one shared
+// helper valid in both files even though only one of those names exists.
+function personaName(key) {
+  const src = (typeof allPersonas !== "undefined" && allPersonas) ||
+              (typeof MOCK_PERSONAS !== "undefined" && MOCK_PERSONAS) || {};
+  return (src[key] && src[key].display_name) || key;
+}
+
+function renderOfferRecap() {
+  const board = document.getElementById("board");
+  const old = document.getElementById("recap");
+  if (old) old.remove();
+
+  const keys = Object.keys(OFFERS).filter((k) => VERDICT_STATE[k] !== "critical" || k === "numbers_shark");
+  if (!keys.length) return;
+
+  let total = 0;
+  const rows = keys.map((key) => {
+    const level = VERDICT_STATE[key] || "warning";
+    const name = personaName(key);
+    const joke = level === "critical";
+    if (level === "good") total += moneyIn(OFFERS[key]);
+    const badge = joke ? "NO DEAL" : level === "warning" ? "PENDING" : "ACCEPTED";
+    const badgeCls = joke ? "critical" : level === "warning" ? "warning" : "good";
+    return `<li class="recap-row">
+      ${avatarHtml(key, "sm")}
+      <span class="recap-name">${name}</span>
+      <span class="recap-offer">${OFFERS[key]}</span>
+      <span class="recap-badge ${badgeCls}">${badge}</span>
+    </li>`;
+  }).join("");
+
+  const totalRow = total > 0
+    ? `<p class="recap-total">On the table: <strong>$${total.toLocaleString("en-US")}</strong></p>`
+    : "";
+
+  const el = document.createElement("section");
+  el.id = "recap";
+  el.className = "recap";
+  el.innerHTML = `<h2 class="recap-title">Offers on the table</h2><ul class="recap-list">${rows}</ul>${totalRow}`;
+  board.insertAdjacentElement("afterend", el);
+}
+
 function tallyLabel(tally) {
   if (tally.total === 0) return null;
   if (tally.critical > tally.total / 2) return { type: "rejected", label: "STILL CIRCLING" };
@@ -1114,8 +1373,8 @@ async function fillCard(key, text) {
   // never show a blank card. Show the full raw response instead of silently
   // dropping it, and log it so this is diagnosable from the browser console.
   if (!body) {
-    console.warn(`[shark:${key}] no reasoning text found before "VERDICT:" — showing raw response instead. Raw text:`, text);
-    body = text.trim() || "(This shark responded with nothing at all — that's a real bug, not just a formatting quirk. Check the browser console for the raw response.)";
+    console.warn(`[shark:${key}] no reasoning text found before "VERDICT:", showing raw response instead. Raw text:`, text);
+    body = text.trim() || "(This shark responded with nothing at all. That's a real bug, not just a formatting quirk. Check the browser console for the raw response.)";
   }
 
   const bodyEl = card.querySelector(".body");
@@ -1129,6 +1388,7 @@ async function fillCard(key, text) {
   if (verdictRaw) ({ level, label } = classifyVerdict(verdictRaw));
 
   if (offerRaw) {
+    OFFERS[key] = offerRaw;
     const offerDiv = document.createElement("div");
     offerDiv.className = `offer offer-${level}`;
     offerDiv.innerHTML = `${iconSvg(OFFER_ICON)}<span class="offer-label">OFFER</span><span class="offer-text"></span>`;
@@ -1137,15 +1397,20 @@ async function fillCard(key, text) {
   }
 
   if (verdictRaw) {
+    card.dataset.condition = verdictRaw;
     const verdictDiv = document.createElement("div");
     verdictDiv.className = `verdict ${level}`;
-    verdictDiv.innerHTML = `${iconSvg(VERDICT_ICONS[level])}<span>${label}</span><span class="verdict-text">— ${verdictRaw}</span>`;
+    verdictDiv.innerHTML = `${iconSvg(VERDICT_ICONS[level])}<span>${label}</span><span class="verdict-text">${verdictRaw}</span>`;
     card.appendChild(verdictDiv);
   }
 
   if (level === "good") { spawnConfetti(card); playChime(); }
   else if (level === "warning") { playDing(); }
   else if (level === "critical") { playJawsSting(); shakeScreen(); addBiteMark(card); }
+
+  // A conditional is the only verdict the user gets a say in: they can
+  // accept the shark's condition and turn it into a yes, or walk away.
+  if (level === "warning") appendDealChoice(card, key);
 
   return level;
 }
@@ -1231,8 +1496,7 @@ async function ask() {
   btn.disabled = true;
   statusEl.textContent = "";
 
-  let outCount = 0;
-  const tally = { good: 0, warning: 0, critical: 0, total: 0 };
+  resetDealState();
 
   try {
     const res = await fetch(`${API_BASE}/advise/stream`, {
@@ -1271,13 +1535,8 @@ async function ask() {
           removeApproachShark(evt.key);
           const level = await fillCard(evt.key, evt.text);
           setProgressState(evt.key, level);
-          tally.total++;
-          tally[level]++;
-          if (level === "critical") {
-            outCount++;
-            bumpBloodLevel(outCount);
-            spawnSwimmingShark(outCount - 1, SHARK_META[evt.key].color, { key: evt.key });
-          }
+          VERDICT_STATE[evt.key] = level;
+          recomputeOutcome();
         } else if (evt.type === "error") {
           removeApproachShark(evt.key);
           addErrorCard(evt.key, evt.error);
@@ -1290,8 +1549,10 @@ async function ask() {
       }
     }
 
-    statusEl.textContent = tally.total ? "" : "None of the sharks could respond — check the server's ANTHROPIC_API_KEY.";
-    if (tally.total > 0) showStamp(tally);
+    const finalTally = currentTally();
+    statusEl.textContent = finalTally.total ? "" : "None of the sharks could respond. Check the server's ANTHROPIC_API_KEY.";
+    if (finalTally.total > 0) showStamp(finalTally);
+    renderOfferRecap();
   } catch (err) {
     statusEl.textContent = `Error: ${err.message}`;
     statusEl.classList.add("error");
