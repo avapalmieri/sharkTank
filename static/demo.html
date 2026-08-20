@@ -563,7 +563,9 @@
   .offer.offer-good     { --offer-hue: var(--good); }
   .offer.offer-warning  { --offer-hue: var(--good); }
   .offer.offer-critical { --offer-hue: var(--critical); }
-  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--offer-hue, var(--good)); }
+  /* same reason as .verdict: on a phone the offer text wraps, so pin the
+     icon to the first line instead of floating it to the middle */
+  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: flex-start; margin-top: 2px; color: var(--offer-hue, var(--good)); }
   .offer-label {
     flex-shrink: 0;
     font-size: 0.68rem;
@@ -576,7 +578,10 @@
 
   .verdict {
     display: inline-flex;
-    align-items: center;
+    /* a long conditional verdict wraps onto several lines on a phone;
+       centring made its first line sit above the badge, so anchor the
+       badge to the top and let the text wrap in its own column */
+    align-items: flex-start;
     gap: 6px;
     margin-top: 14px;
     padding: 6px 12px 6px 8px;
@@ -585,7 +590,8 @@
     font-weight: 700;
     letter-spacing: 0.02em;
   }
-  .verdict svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .verdict svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+  .verdict > span:not(.verdict-text) { flex-shrink: 0; }
   .verdict.good     { background: color-mix(in srgb, var(--good) 18%, transparent);     color: #6fe36f; }
   .verdict.warning  { background: color-mix(in srgb, var(--warning) 18%, transparent);  color: #ffcf6b; }
   .verdict.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: #ff9d9d; }
@@ -762,9 +768,9 @@ const MOCK_PERSONAS = {
 // (see the textarea default above).
 const MOCK_FEEDBACK = {
   "The People Shark": "You already know every dog and every owner on your street, and that kind of built in trust is the hardest part of this whole thing to fake. What would make this even stronger is letting yourself charge what it's actually worth from day one, because people pay for someone they trust with their dog. You are exactly the right person to run this.\nOFFER: $40,000 for 8%, because I'm betting on you more than the idea.\nVERDICT: I'm in.",
-  "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. This one has real charm baked in.\nOFFER: $60,000 for 15%, and I'll name it and design the whole look myself.\nVERDICT: I'm in.",
-  "The Scale Shark": "Weekends prove it. Weekdays double it. Add pet sitting for holidays and you've got something that runs all year. The exciting next step is bringing on one other walker so you're not the ceiling on your own idea.\nOFFER: $250,000 for 30%, and we hire three more walkers by spring.\nVERDICT: I'm in.",
-  "The Product Shark": "I love picturing this, what does the handoff actually look like when an owner meets you at the door? A little photo update mid walk would make the whole experience feel special, and owners would absolutely share those. That tiny detail could be the thing people remember.\nOFFER: $75,000 for 18%, half of it released once you've walked fifty dogs.\nVERDICT: I'm in, but only if you can show me people come back a second time.",
+  "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. There's real charm here and I want in on it.\nOFFER: $60,000 for 15%, and I'll name it and design the whole look myself.\nVERDICT: I'm in.",
+  "The Scale Shark": "The neighborhood trust you've built is genuinely valuable, and I don't want to talk you out of that. What stops me is that this caps out at however many Saturdays one person has, and I haven't heard how it grows past you. Come back with a second walker trained and booked and I'm right back at this table.\nVERDICT: I'm out.",
+  "The Product Shark": "The photo update idea is the part I keep thinking about, that's the kind of small detail owners actually screenshot and send to friends. My bar here is high and what I need is proof people come back a second and third time, not just try it once. Show me that and this gets a lot more interesting to me.\nOFFER: $75,000 for 18%, half released once you've walked fifty dogs.\nVERDICT: I'm in, but only if you can show me repeat bookings.",
   "The Numbers Shark": "Everyone here loves this, which is usually my first warning sign. Weekend dog walking is fine right up until two people book the same Saturday, and then it is just you apologizing to someone holding a leash. Tell me what happens on the second Saturday.\nOFFER: A laminated coupon for one free hug and my cousin's van, but only on a Tuesday.\nVERDICT: I'm out.",
 };
 

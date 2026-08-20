@@ -581,7 +581,9 @@
   .offer.offer-good     { --offer-hue: var(--good); }
   .offer.offer-warning  { --offer-hue: var(--good); }
   .offer.offer-critical { --offer-hue: var(--critical); }
-  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--offer-hue, var(--good)); }
+  /* same reason as .verdict: on a phone the offer text wraps, so pin the
+     icon to the first line instead of floating it to the middle */
+  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: flex-start; margin-top: 2px; color: var(--offer-hue, var(--good)); }
   .offer-label {
     flex-shrink: 0;
     font-size: 0.68rem;
@@ -594,7 +596,10 @@
 
   .verdict {
     display: inline-flex;
-    align-items: center;
+    /* a long conditional verdict wraps onto several lines on a phone;
+       centring made its first line sit above the badge, so anchor the
+       badge to the top and let the text wrap in its own column */
+    align-items: flex-start;
     gap: 6px;
     margin-top: 14px;
     padding: 6px 12px 6px 8px;
@@ -603,7 +608,8 @@
     font-weight: 700;
     letter-spacing: 0.02em;
   }
-  .verdict svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .verdict svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+  .verdict > span:not(.verdict-text) { flex-shrink: 0; }
   .verdict.good     { background: color-mix(in srgb, var(--good) 18%, transparent);     color: #6fe36f; }
   .verdict.warning  { background: color-mix(in srgb, var(--warning) 18%, transparent);  color: #ffcf6b; }
   .verdict.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: #ff9d9d; }
