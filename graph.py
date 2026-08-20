@@ -263,7 +263,10 @@ TONE_INSTRUCTION = (
     "Backhanded compliments. Any sentence whose real purpose is to show "
     "you're the smartest one at the table. Critique the idea, never the "
     "person. Do not use em dashes anywhere; use a period, a comma, or "
-    "start a new sentence instead. "
+    "start a new sentence instead. " "Never use asterisks or any markdown formatting: no *word*, no "
+    "**word**. When you name something, a product name, a tagline or a "
+    "title, put it in double quotes instead, like \"The Saturday "
+    "Pack\". "
 )
 
 # For the sharks that can genuinely pass (2 through 4). Keeps every hard
@@ -293,7 +296,10 @@ FAIR_TONE_INSTRUCTION = (
     "'haven't thought about'. Listing everything wrong at once. Backhanded "
     "compliments. Critique the idea, never the person. Do not use em "
     "dashes anywhere; use a period, a comma, or start a new sentence "
-    "instead. "
+    "instead. Never use asterisks or any markdown formatting: no "
+    "*word*, no **word**. When you name something, a product name, a "
+    "tagline or a title, put it in double quotes instead, like \"The "
+    "Saturday Pack\". "
 )
 
 # Applies ONLY to the Numbers Shark. The other four are relentlessly
@@ -320,7 +326,10 @@ CRITICAL_TONE_INSTRUCTION = (
     "Saturday, and then it is just you apologizing. Tell me what happens "
     "on the second Saturday.\"\n\n"
     "Do not use em dashes anywhere; use a period, a comma, or start a new "
-    "sentence instead. "
+    "sentence instead. " "Never use asterisks or any markdown formatting: no *word*, no "
+    "**word**. When you name something, a product name, a tagline or a "
+    "title, put it in double quotes instead, like \"The Saturday "
+    "Pack\". "
 )
 
 # Each shark is differentiated by WHAT THEY CARE ABOUT and HOW THEY TALK,
@@ -519,9 +528,34 @@ def _enforce_offer_rules(text: str, persona_key: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
 
 
+_BOLD_RE = re.compile(r"\*\*(.+?)\*\*", re.S)
+_ITALIC_RE = re.compile(r"(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)", re.S)
+_STRAY_STAR_RE = re.compile(r"\*+")
+_DOUBLED_QUOTE_RE = re.compile(r'"{2,}')
+
+
+def _quote_emphasis(match: re.Match) -> str:
+    inner = match.group(1).strip().strip('"').strip()
+    return f'"{inner}"' if inner else ""
+
+
+def _strip_markdown(text: str) -> str:
+    """Turn asterisk emphasis into quotes, then drop any stray asterisks.
+
+    The cards render as plain text, so markdown never becomes formatting,
+    it just shows up as literal *characters*. Emphasis in these responses
+    is nearly always a name a shark is suggesting, so quotes are what was
+    actually meant.
+    """
+    text = _BOLD_RE.sub(_quote_emphasis, text)
+    text = _ITALIC_RE.sub(_quote_emphasis, text)
+    text = _STRAY_STAR_RE.sub("", text)
+    return _DOUBLED_QUOTE_RE.sub('"', text)
+
+
 def _clean(text: str, persona_key: str) -> str:
     """All output post-processing in one place."""
-    return _enforce_offer_rules(_strip_em_dashes(text), persona_key)
+    return _enforce_offer_rules(_strip_markdown(_strip_em_dashes(text)), persona_key)
 
 
 def _resolve_keys(persona_keys):
