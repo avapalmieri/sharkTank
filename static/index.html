@@ -543,6 +543,30 @@
   .card.errored { opacity: 0.7; }
   .card.errored .body { font-style: italic; }
 
+  /* an offer on the table, shown between the reasoning and the verdict */
+  .offer {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px dashed color-mix(in srgb, var(--accent, #9085e9) 55%, transparent);
+    background: color-mix(in srgb, var(--accent, #9085e9) 10%, transparent);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--accent, #9085e9); }
+  .offer-label {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent, #9085e9);
+  }
+  .offer-text { color: var(--text-primary); }
+
   .verdict {
     display: inline-flex;
     align-items: center;
@@ -646,7 +670,7 @@
   <header class="hero">
     <span class="kicker">Multi-agent idea &amp; pitch review</span>
     <h1>THE TANK</h1>
-    <p class="sub">Pitch any idea, product, or project — good idea or bad idea, and why, no pricing or margins required — to five sharks who don't agree with each other. Nicest first, meanest last, one at a time. No synthesis, no consensus — you swim with whatever verdicts you get.</p>
+    <p class="sub">Pitch any idea, product, or project — good idea or bad idea, and why, no pricing or margins required — to five sharks who don't agree with each other. Five sharks, one at a time, each with their own take and their own offer on the table. No consensus, no committee, just five opinions and a lot of teeth.</p>
   </header>
 
   <section class="pitch-panel">
@@ -654,7 +678,7 @@
     <textarea id="topic" placeholder="e.g. I want to start a weekend pop-up dog-walking service in my neighborhood."></textarea>
     <p class="disclaimer">Any idea, product, or pitch. For entertainment and brainstorming, not professional advice.</p>
 
-    <div class="field-label" style="margin-top: 22px;">Sharks in the tank (nicest → meanest)</div>
+    <div class="field-label" style="margin-top: 22px;">Meet the sharks</div>
     <div class="personas" id="personas"></div>
 
     <div class="actions">
@@ -726,6 +750,8 @@ const SHARK_META = {
   },
 };
 
+const OFFER_ICON = '<path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><line x1="12" y1="21" x2="12" y2="7"/><path d="M12 7A2.5 2.5 0 1 1 9.5 4.5 2.5 2.5 0 0 1 12 7Z"/><path d="M12 7a2.5 2.5 0 1 0 2.5-2.5A2.5 2.5 0 0 0 12 7Z"/>';
+
 const VERDICT_ICONS = {
   good: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5 10.5 15 16 9"/>',
   warning: '<path d="M12 3 22 20 2 20Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/>',
@@ -758,8 +784,13 @@ function classifyVerdict(verdictText) {
   if (t.includes("but only if") || t.includes("conditional")) {
     return { level: "warning", label: "CONDITIONAL" };
   }
-  if (t.includes("i'm out") || t.includes("im out")) {
-    return { level: "critical", label: "OUT" };
+  // "circling" replaced "I'm out" as the least-enthusiastic verdict. It
+  // still maps to the "critical" LEVEL on purpose, because that's what
+  // drives the fun drama (bloody water, bass sting, screen shake) and the
+  // drama was never the problem. Only the wording was. "I'm out" is kept
+  // as a legacy fallback in case a model ignores the prompt and says it.
+  if (t.includes("circling") || t.includes("i'm out") || t.includes("im out")) {
+    return { level: "critical", label: "CIRCLING" };
   }
   return { level: "good", label: "IN" };
 }
@@ -1022,7 +1053,7 @@ function addBiteMark(card) {
 
 function tallyLabel(tally) {
   if (tally.total === 0) return null;
-  if (tally.critical > tally.total / 2) return { type: "rejected", label: "REJECTED" };
+  if (tally.critical > tally.total / 2) return { type: "rejected", label: "STILL CIRCLING" };
   if (tally.good > tally.total / 2) return { type: "approved", label: "APPROVED" };
   return { type: "mixed", label: "MIXED VERDICT" };
 }
@@ -1061,8 +1092,18 @@ async function fillCard(key, text) {
   const card = document.getElementById(`card-${key}`);
   if (!card) return "good";
   card.classList.remove("thinking");
+  // Responses now look like:  <reasoning>  OFFER: ...  VERDICT: ...
+  // OFFER is optional (sharks who are still circling don't make one), and
+  // is always positioned before VERDICT, so slicing in that order keeps
+  // the old parse working even on a response that has no offer at all.
   const verdictIdx = text.indexOf("VERDICT:");
-  let body = verdictIdx === -1 ? text : text.slice(0, verdictIdx).trim();
+  const offerIdx = text.indexOf("OFFER:");
+  const hasOffer = offerIdx !== -1 && (verdictIdx === -1 || offerIdx < verdictIdx);
+  const bodyEnd = hasOffer ? offerIdx : (verdictIdx === -1 ? text.length : verdictIdx);
+  let body = text.slice(0, bodyEnd).trim();
+  const offerRaw = hasOffer
+    ? text.slice(offerIdx + "OFFER:".length, verdictIdx === -1 ? text.length : verdictIdx).trim()
+    : "";
   const verdictRaw = verdictIdx === -1 ? "" : text.slice(verdictIdx + "VERDICT:".length).trim();
 
   // Defensive fallback: if the model's response doesn't cleanly separate into
@@ -1077,6 +1118,14 @@ async function fillCard(key, text) {
   const bodyEl = card.querySelector(".body");
   bodyEl.classList.remove("thinking-text");
   await typewriter(bodyEl, body);
+
+  if (offerRaw) {
+    const offerDiv = document.createElement("div");
+    offerDiv.className = "offer";
+    offerDiv.innerHTML = `${iconSvg(OFFER_ICON)}<span class="offer-label">OFFER</span><span class="offer-text"></span>`;
+    card.appendChild(offerDiv);
+    await typewriter(offerDiv.querySelector(".offer-text"), offerRaw, 12);
+  }
 
   let level = "good", label = "IN";
   if (verdictRaw) {

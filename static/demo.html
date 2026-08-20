@@ -127,6 +127,7 @@
   @media (prefers-reduced-motion: reduce) { .shark-bob { animation: none; } }
 
   .shark-silhouette { fill: #050d16; stroke: var(--tint, transparent); stroke-width: 1.4; }
+  .shark-photo-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.94; display: block; }
 
   .wrap {
     position: relative;
@@ -524,6 +525,30 @@
   .card.errored { opacity: 0.7; }
   .card.errored .body { font-style: italic; }
 
+  /* an offer on the table, shown between the reasoning and the verdict */
+  .offer {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px dashed color-mix(in srgb, var(--accent, #9085e9) 55%, transparent);
+    background: color-mix(in srgb, var(--accent, #9085e9) 10%, transparent);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--accent, #9085e9); }
+  .offer-label {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent, #9085e9);
+  }
+  .offer-text { color: var(--text-primary); }
+
   .verdict {
     display: inline-flex;
     align-items: center;
@@ -621,18 +646,18 @@
 
 <div class="wrap" id="wrap">
   <header class="hero">
-    <span class="kicker">Multi-agent business &amp; financial review</span>
+    <span class="kicker">Multi-agent idea &amp; pitch review</span>
     <h1>THE TANK</h1>
-    <p class="sub">Pitch a business or financial decision — pricing, spending, hiring, fundraising, market entry, an investment — to five sharks who don't agree with each other. Nicest first, meanest last, one at a time. No synthesis, no consensus — you swim with whatever verdicts you get.</p>
+    <p class="sub">Pitch any idea, product, or project — good idea or bad idea, and why, no pricing or margins required — to five sharks who don't agree with each other. Five sharks, one at a time, each with their own take and their own offer on the table. No consensus, no committee, just five opinions and a lot of teeth.</p>
     <div class="demo-banner"><strong>UI preview only.</strong> This page simulates the one-at-a-time reveal with canned responses and a fake thinking delay — the real app streams live Claude responses from the FastAPI backend, one shark at a time, for real. Click "Enter the tank" to run it again.</div>
   </header>
 
   <section class="pitch-panel">
     <label class="field-label" for="topic">Your pitch</label>
-    <textarea id="topic">I'm thinking of raising my prices 20% next quarter to improve margin.</textarea>
-    <p class="disclaimer">Business/financial decisions only — not licensed financial, legal, or investment advice. For entertainment and brainstorming.</p>
+    <textarea id="topic">I want to start a weekend pop-up dog-walking service in my neighborhood.</textarea>
+    <p class="disclaimer">Any idea, product, or pitch. For entertainment and brainstorming, not professional advice.</p>
 
-    <div class="field-label" style="margin-top: 22px;">Sharks in the tank (nicest → meanest)</div>
+    <div class="field-label" style="margin-top: 22px;">Meet the sharks</div>
     <div class="personas" id="personas"></div>
 
     <div class="actions">
@@ -714,17 +739,20 @@ const MOCK_PERSONAS = {
   numbers_shark: { display_name: "The Numbers Shark" },
 };
 
-// Tone gradient matches graph.py: warm mentor -> friendly coach -> direct
-// -> blunt -> savage one-liner. Ends on the meanest note on purpose.
-// Sample topic is a pricing decision, matching the tank's business/
-// financial-only scope (see the textarea default below).
+// Tone gradient matches graph.py: every shark is fundamentally rooting for
+// the idea, from warmest (People) to sharpest (Numbers). None of them are
+// out to wreck it, they just poke at it from different angles. Sample
+// topic is a general idea, matching the tank's any-idea-or-pitch scope
+// (see the textarea default above).
 const MOCK_FEEDBACK = {
-  "The People Shark": "I can tell you've done the margin math, and that's the easy part — the harder part is how you handle the calls from long-time customers who push back. Give yourself a real script and a grace period for your best accounts before this goes live. I like your instinct here.\nVERDICT: I'm in.",
-  "The Brand Shark": "A price hike without a reason attached just reads as 'we needed more money,' and customers can smell that. What's the one thing you're adding or fixing that justifies this? Lead with that in every email you send about it, or you'll take a churn hit you didn't need to.\nVERDICT: I'm in, but only if you can tell me the one thing customers get in return.",
-  "The Scale Shark": "20% more margin per customer doesn't matter if it caps how many customers you can land in the first place — what does this do to your conversion rate at the top of funnel? That's the one number missing here.\nVERDICT: I'm in, but only if you've modeled the funnel impact, not just the per-seat math.",
-  "The Product Shark": "You haven't mentioned testing this on a single customer segment first. Roll it out on new signups before you touch existing accounts, or you're guessing with your whole book of business.\nVERDICT: I'm out.",
-  "The Numbers Shark": "You want 20% more revenue per seat and you haven't told me your expected churn rate at the new price. That's not a pricing plan, that's a guess with a percentage sign on it. Come back with an elasticity estimate.\nVERDICT: I'm out.",
+  "The People Shark": "You already know every dog and every owner on your street, and that kind of built in trust is the hardest part of this whole thing to fake. What would make this even stronger is letting yourself charge what it's actually worth from day one, because people pay for someone they trust with their dog. You are exactly the right person to run this.\nOFFER: I'm your first phone call any time you get nervous about it.\nVERDICT: I'm in.",
+  "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. This one has real charm baked in.\nOFFER: I'll design the cards and name it for you, no charge.\nVERDICT: I'm in.",
+  "The Scale Shark": "Weekends prove it. Weekdays double it. Add pet sitting for holidays and you've got something that runs all year. The exciting next step is bringing on one other walker so you're not the ceiling on your own idea.\nOFFER: I'll introduce you to every dog owner I know in the next three neighborhoods.\nVERDICT: I'm in.",
+  "The Product Shark": "I love picturing this, what does the handoff actually look like when an owner meets you at the door? A little photo update mid walk would make the whole experience feel special, and owners would absolutely share those. That tiny detail could be the thing people remember.\nOFFER: I'll be your very first customer this Saturday and tell you exactly how it felt.\nVERDICT: I'm in.",
+  "The Numbers Shark": "This is the kind of idea you can start this weekend, which is my favorite kind. Your first step is simple, post in your neighborhood group on Thursday and take your first two dogs on Saturday. You'll learn more from that one morning than from a month of planning.\nOFFER: Half a sandwich and my cousin's van, but only on a Tuesday.\nVERDICT: I'm in.",
 };
+
+const OFFER_ICON = '<path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><line x1="12" y1="21" x2="12" y2="7"/><path d="M12 7A2.5 2.5 0 1 1 9.5 4.5 2.5 2.5 0 0 1 12 7Z"/><path d="M12 7a2.5 2.5 0 1 0 2.5-2.5A2.5 2.5 0 0 0 12 7Z"/>';
 
 const VERDICT_ICONS = {
   good: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5 10.5 15 16 9"/>',
@@ -758,8 +786,13 @@ function classifyVerdict(verdictText) {
   if (t.includes("but only if") || t.includes("conditional")) {
     return { level: "warning", label: "CONDITIONAL" };
   }
-  if (t.includes("i'm out") || t.includes("im out")) {
-    return { level: "critical", label: "OUT" };
+  // "circling" replaced "I'm out" as the least-enthusiastic verdict. It
+  // still maps to the "critical" LEVEL on purpose, because that's what
+  // drives the fun drama (bloody water, bass sting, screen shake) and the
+  // drama was never the problem. Only the wording was. "I'm out" is kept
+  // as a legacy fallback in case a model ignores the prompt and says it.
+  if (t.includes("circling") || t.includes("i'm out") || t.includes("im out")) {
+    return { level: "critical", label: "CIRCLING" };
   }
   return { level: "good", label: "IN" };
 }
@@ -785,12 +818,15 @@ function spawnBubbles() {
   }
 }
 
-const SHARK_SILHOUETTE = `
-  <path class="shark-silhouette" d="M2 55 C10 30 40 15 90 15 C130 15 160 25 190 40 C170 40 155 45 148 55
-    C158 58 172 62 190 62 C165 65 140 63 128 55 C105 75 55 82 25 68 C12 62 5 60 2 55 Z"/>
-  <path class="shark-silhouette" d="M82 16 L96 -18 L110 17 Z"/>
-  <path class="shark-silhouette" d="M68 50 L50 74 L86 58 Z"/>
-`;
+// See static/index.html for the full explanation — same shark-body shape,
+// now used as an SVG clipPath so a real photo shows through the cutout
+// instead of a flat tinted fill. Kept in sync so the demo matches the app.
+const SHARK_CLIP_D = `M2 55 C10 30 40 15 90 15 C130 15 160 25 190 40 C170 40 155 45 148 55
+  C158 58 172 62 190 62 C165 65 140 63 128 55 C105 75 55 82 25 68 C12 62 5 60 2 55 Z
+  M82 16 L96 -18 L110 17 Z
+  M68 50 L50 74 L86 58 Z`;
+
+let swimClipCounter = 0;
 
 function clearSwimmers() {
   document.querySelectorAll(".swim-shark").forEach((el) => el.remove());
@@ -809,7 +845,27 @@ function spawnSwimmingShark(idx, colorVar, { approach = false, key = null } = {}
   el.style.setProperty("--duration", duration + "s");
   el.style.setProperty("--delay", delay + "s");
   el.style.setProperty("--scale", scale);
-  el.innerHTML = `<svg class="shark-bob" viewBox="0 0 200 100" style="--tint:${colorVar}">${SHARK_SILHOUETTE}</svg>`;
+
+  const photo = key && SHARK_META[key] ? SHARK_META[key].photo : null;
+  const clipId = `shark-clip-${swimClipCounter++}`;
+
+  // Deliberately NOT a native SVG <image href="..."> here. In testing, a
+  // plain <img> (as used for the chip/card avatars, which do load) proved
+  // far more reliable than an SVG <image> inserted via innerHTML, so this
+  // reuses that exact same working <img> tag, wrapped in a <foreignObject>
+  // so it still gets the SVG viewBox's automatic scaling and can still be
+  // clipped to the shark silhouette via the same clipPath shape.
+  el.innerHTML = `
+    <svg class="shark-bob" viewBox="0 0 200 100" style="--tint:${colorVar}">
+      <path class="shark-silhouette" d="${SHARK_CLIP_D}"/>${photo ? `
+      <clipPath id="${clipId}"><path d="${SHARK_CLIP_D}"/></clipPath>
+      <foreignObject x="-20" y="-20" width="240" height="140" clip-path="url(#${clipId})">
+        <img xmlns="http://www.w3.org/1999/xhtml" class="shark-photo-img" src="${photo}" alt=""
+             referrerpolicy="no-referrer"
+             onerror="console.warn('[swim-shark] photo failed to load, falling back to silhouette:', this.src); this.remove();">
+      </foreignObject>` : ""}
+    </svg>`;
+
   bg.appendChild(el);
   return el;
 }
@@ -982,7 +1038,7 @@ function addBiteMark(card) {
 
 function tallyLabel(tally) {
   if (tally.total === 0) return null;
-  if (tally.critical > tally.total / 2) return { type: "rejected", label: "REJECTED" };
+  if (tally.critical > tally.total / 2) return { type: "rejected", label: "STILL CIRCLING" };
   if (tally.good > tally.total / 2) return { type: "approved", label: "APPROVED" };
   return { type: "mixed", label: "MIXED VERDICT" };
 }
@@ -1019,8 +1075,18 @@ async function fillCard(key, text) {
   const card = document.getElementById(`card-${key}`);
   if (!card) return "good";
   card.classList.remove("thinking");
+  // Responses now look like:  <reasoning>  OFFER: ...  VERDICT: ...
+  // OFFER is optional (sharks who are still circling don't make one), and
+  // is always positioned before VERDICT, so slicing in that order keeps
+  // the old parse working even on a response that has no offer at all.
   const verdictIdx = text.indexOf("VERDICT:");
-  let body = verdictIdx === -1 ? text : text.slice(0, verdictIdx).trim();
+  const offerIdx = text.indexOf("OFFER:");
+  const hasOffer = offerIdx !== -1 && (verdictIdx === -1 || offerIdx < verdictIdx);
+  const bodyEnd = hasOffer ? offerIdx : (verdictIdx === -1 ? text.length : verdictIdx);
+  let body = text.slice(0, bodyEnd).trim();
+  const offerRaw = hasOffer
+    ? text.slice(offerIdx + "OFFER:".length, verdictIdx === -1 ? text.length : verdictIdx).trim()
+    : "";
   const verdictRaw = verdictIdx === -1 ? "" : text.slice(verdictIdx + "VERDICT:".length).trim();
 
   // Defensive fallback — see static/index.html for the full explanation.
@@ -1033,6 +1099,14 @@ async function fillCard(key, text) {
   const bodyEl = card.querySelector(".body");
   bodyEl.classList.remove("thinking-text");
   await typewriter(bodyEl, body);
+
+  if (offerRaw) {
+    const offerDiv = document.createElement("div");
+    offerDiv.className = "offer";
+    offerDiv.innerHTML = `${iconSvg(OFFER_ICON)}<span class="offer-label">OFFER</span><span class="offer-text"></span>`;
+    card.appendChild(offerDiv);
+    await typewriter(offerDiv.querySelector(".offer-text"), offerRaw, 12);
+  }
 
   let level = "good", label = "IN";
   if (verdictRaw) {
@@ -1132,7 +1206,7 @@ async function ask() {
     if (level === "critical") {
       outCount++;
       bumpBloodLevel(outCount);
-      spawnSwimmingShark(outCount - 1, SHARK_META[key].color);
+      spawnSwimmingShark(outCount - 1, SHARK_META[key].color, { key });
     }
   }
 
