@@ -807,6 +807,16 @@
   }
   .stamp-overlay.show .stamp { transform: rotate(-8deg) scale(1); opacity: 0.94; }
   .stamp-approved .stamp { color: #6fe36f; border-color: #6fe36f; }
+  /* clean sweep: same green family so it still reads as a win, but lit up
+     and a touch larger so it is obviously the rare one */
+  .stamp-whale .stamp {
+    color: #8affa0;
+    border-color: #8affa0;
+    border-width: 4px;
+    text-shadow: 0 0 18px rgba(138,255,160,0.65);
+    box-shadow: 0 0 34px rgba(138,255,160,0.35), inset 0 0 24px rgba(138,255,160,0.16);
+  }
+  .stamp-overlay.stamp-whale.show .stamp { transform: rotate(-8deg) scale(1.1); opacity: 1; }
   .stamp-mixed .stamp    { color: #ffcf6b; border-color: #ffcf6b; }
   .stamp-rejected .stamp { color: #ff9d9d; border-color: #ff9d9d; }
   @media (prefers-reduced-motion: reduce) {
@@ -1367,11 +1377,21 @@ function renderOfferRecap() {
   board.insertAdjacentElement("afterend", el);
 }
 
+// Scored on how many sharks are actually IN, so with the usual five:
+//   3, 4 or 5 in -> BIG FISH     (green)
+//   2 in         -> LITTLE FISH  (amber)
+//   0 or 1 in    -> CHUM         (red)
+// Written as ratios rather than raw counts so it still behaves when the
+// player runs fewer than five sharks. Conditionals count as "in" only once
+// the player accepts them, and the stamp recomputes when they do.
 function tallyLabel(tally) {
   if (tally.total === 0) return null;
-  if (tally.critical > tally.total / 2) return { type: "rejected", label: "STILL CIRCLING" };
-  if (tally.good > tally.total / 2) return { type: "approved", label: "APPROVED" };
-  return { type: "mixed", label: "MIXED VERDICT" };
+  const share = tally.good / tally.total;
+  // a clean sweep, every shark in, is its own tier
+  if (share === 1) return { type: "whale", label: "WHALE HUNTER" };
+  if (share >= 0.6) return { type: "approved", label: "BIG FISH" };
+  if (share >= 0.4) return { type: "mixed", label: "LITTLE FISH" };
+  return { type: "rejected", label: "CHUM" };
 }
 
 function showStamp(tally) {
@@ -1382,6 +1402,11 @@ function showStamp(tally) {
   overlay.innerHTML = `<div class="stamp">${result.label}</div>`;
   document.getElementById("board").appendChild(overlay);
   playStampThud();
+  if (result.type === "whale") {
+    // clean sweep: throw confetti off the stamp itself
+    playChime();
+    setTimeout(() => spawnConfetti(overlay.querySelector(".stamp")), 220);
+  }
   requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add("show")));
 }
 
