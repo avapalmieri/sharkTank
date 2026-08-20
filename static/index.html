@@ -684,6 +684,7 @@
     gap: 6px 10px;
   }
   .recap-name { font-weight: 700; font-size: 0.9rem; }
+  .recap-none { color: var(--text-muted); font-style: italic; }
   .recap-offer {
     grid-column: 2 / -1;
     color: var(--text-secondary);
@@ -1302,33 +1303,62 @@ function personaName(key) {
   return (src[key] && src[key].display_name) || key;
 }
 
+// Sharks whose offer is a gag rather than a real deal.
+const OFFER_IS_JOKE = new Set(["numbers_shark"]);
+
 function renderOfferRecap() {
   const board = document.getElementById("board");
   const old = document.getElementById("recap");
   if (old) old.remove();
 
-  const keys = Object.keys(OFFERS).filter((k) => VERDICT_STATE[k] !== "critical" || k === "numbers_shark");
+  // Walk SHARK_META rather than OFFERS, for two reasons: every shark that
+  // answered belongs in the recap even when it passed and therefore made no
+  // offer, and this keeps the rows in the tank's own reveal order instead of
+  // whatever order results happened to arrive in.
+  const keys = Object.keys(SHARK_META).filter((k) => VERDICT_STATE[k]);
   if (!keys.length) return;
 
   let total = 0;
   const rows = keys.map((key) => {
-    const level = VERDICT_STATE[key] || "warning";
+    const level = VERDICT_STATE[key];
+    const offer = OFFERS[key];
     const name = personaName(key);
-    const joke = level === "critical";
-    if (level === "good") total += moneyIn(OFFERS[key]);
-    const badge = joke ? "NO DEAL" : level === "warning" ? "PENDING" : "ACCEPTED";
-    const badgeCls = joke ? "critical" : level === "warning" ? "warning" : "good";
+
+    let badge, badgeCls, detail;
+    if (!offer) {
+      // passed without putting anything on the table
+      badge = "PASSED";
+      badgeCls = "critical";
+      detail = `<span class="recap-none">No offer</span>`;
+    } else if (level === "critical") {
+      // A rejected shark with an offer attached is one of two things: the
+      // Numbers Shark's joke consolation prize, or a real conditional offer
+      // the player themselves turned down. Those deserve different labels.
+      badge = OFFER_IS_JOKE.has(key) ? "NO DEAL" : "WALKED AWAY";
+      badgeCls = "critical";
+      detail = offer;
+    } else if (level === "warning") {
+      badge = "PENDING";
+      badgeCls = "warning";
+      detail = offer;
+    } else {
+      badge = "ACCEPTED";
+      badgeCls = "good";
+      detail = offer;
+      total += moneyIn(offer);
+    }
+
     return `<li class="recap-row">
       ${avatarHtml(key, "sm")}
       <span class="recap-name">${name}</span>
-      <span class="recap-offer">${OFFERS[key]}</span>
+      <span class="recap-offer">${detail}</span>
       <span class="recap-badge ${badgeCls}">${badge}</span>
     </li>`;
   }).join("");
 
   const totalRow = total > 0
     ? `<p class="recap-total">On the table: <strong>$${total.toLocaleString("en-US")}</strong></p>`
-    : "";
+    : `<p class="recap-total">Nothing on the table yet.</p>`;
 
   const el = document.createElement("section");
   el.id = "recap";
