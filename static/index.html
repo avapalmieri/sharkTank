@@ -1033,8 +1033,17 @@ async function fillCard(key, text) {
   if (!card) return "good";
   card.classList.remove("thinking");
   const verdictIdx = text.indexOf("VERDICT:");
-  const body = verdictIdx === -1 ? text : text.slice(0, verdictIdx).trim();
+  let body = verdictIdx === -1 ? text : text.slice(0, verdictIdx).trim();
   const verdictRaw = verdictIdx === -1 ? "" : text.slice(verdictIdx + "VERDICT:".length).trim();
+
+  // Defensive fallback: if the model's response doesn't cleanly separate into
+  // "reasoning, then VERDICT:" — e.g. it opens directly with the verdict —
+  // never show a blank card. Show the full raw response instead of silently
+  // dropping it, and log it so this is diagnosable from the browser console.
+  if (!body) {
+    console.warn(`[shark:${key}] no reasoning text found before "VERDICT:" — showing raw response instead. Raw text:`, text);
+    body = text.trim() || "(This shark responded with nothing at all — that's a real bug, not just a formatting quirk. Check the browser console for the raw response.)";
+  }
 
   const bodyEl = card.querySelector(".body");
   bodyEl.classList.remove("thinking-text");
