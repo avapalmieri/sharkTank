@@ -555,10 +555,13 @@
     font-size: 0.9rem;
     line-height: 1.5;
   }
-  /* An offer is tinted by the verdict it came with, not by the shark, so
-     "they're in and here's what they'll put in" always reads green. */
+  /* An offer is tinted by the verdict it came with, not by the shark.
+     Every REAL deal reads green, including a conditional "I'm in, but only
+     if" one, because it is still money on the table. Red is reserved for
+     the Numbers Shark's deadpan joke offer, which only ever accompanies an
+     "I'm out", so red always means "this is the gag, not a real deal". */
   .offer.offer-good     { --offer-hue: var(--good); }
-  .offer.offer-warning  { --offer-hue: var(--warning); }
+  .offer.offer-warning  { --offer-hue: var(--good); }
   .offer.offer-critical { --offer-hue: var(--critical); }
   .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--offer-hue, var(--good)); }
   .offer-label {
@@ -758,10 +761,10 @@ const MOCK_PERSONAS = {
 // topic is a general idea, matching the tank's any-idea-or-pitch scope
 // (see the textarea default above).
 const MOCK_FEEDBACK = {
-  "The People Shark": "You already know every dog and every owner on your street, and that kind of built in trust is the hardest part of this whole thing to fake. What would make this even stronger is letting yourself charge what it's actually worth from day one, because people pay for someone they trust with their dog. You are exactly the right person to run this.\nOFFER: I'm your first phone call any time you get nervous about it.\nVERDICT: I'm in.",
-  "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. This one has real charm baked in.\nOFFER: I'll design the cards and name it for you, no charge.\nVERDICT: I'm in.",
-  "The Scale Shark": "Weekends prove it. Weekdays double it. Add pet sitting for holidays and you've got something that runs all year. The exciting next step is bringing on one other walker so you're not the ceiling on your own idea.\nOFFER: I'll introduce you to every dog owner I know in the next three neighborhoods.\nVERDICT: I'm in.",
-  "The Product Shark": "I love picturing this, what does the handoff actually look like when an owner meets you at the door? A little photo update mid walk would make the whole experience feel special, and owners would absolutely share those. That tiny detail could be the thing people remember.\nOFFER: I'll be your very first customer this Saturday and tell you exactly how it felt.\nVERDICT: I'm in.",
+  "The People Shark": "You already know every dog and every owner on your street, and that kind of built in trust is the hardest part of this whole thing to fake. What would make this even stronger is letting yourself charge what it's actually worth from day one, because people pay for someone they trust with their dog. You are exactly the right person to run this.\nOFFER: $40,000 for 8%, because I'm betting on you more than the idea.\nVERDICT: I'm in.",
+  "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. This one has real charm baked in.\nOFFER: $60,000 for 15%, and I'll name it and design the whole look myself.\nVERDICT: I'm in.",
+  "The Scale Shark": "Weekends prove it. Weekdays double it. Add pet sitting for holidays and you've got something that runs all year. The exciting next step is bringing on one other walker so you're not the ceiling on your own idea.\nOFFER: $250,000 for 30%, and we hire three more walkers by spring.\nVERDICT: I'm in.",
+  "The Product Shark": "I love picturing this, what does the handoff actually look like when an owner meets you at the door? A little photo update mid walk would make the whole experience feel special, and owners would absolutely share those. That tiny detail could be the thing people remember.\nOFFER: $75,000 for 18%, half of it released once you've walked fifty dogs.\nVERDICT: I'm in, but only if you can show me people come back a second time.",
   "The Numbers Shark": "Everyone here loves this, which is usually my first warning sign. Weekend dog walking is fine right up until two people book the same Saturday, and then it is just you apologizing to someone holding a leash. Tell me what happens on the second Saturday.\nOFFER: A laminated coupon for one free hug and my cousin's van, but only on a Tuesday.\nVERDICT: I'm out.",
 };
 

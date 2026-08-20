@@ -573,10 +573,13 @@
     font-size: 0.9rem;
     line-height: 1.5;
   }
-  /* An offer is tinted by the verdict it came with, not by the shark, so
-     "they're in and here's what they'll put in" always reads green. */
+  /* An offer is tinted by the verdict it came with, not by the shark.
+     Every REAL deal reads green, including a conditional "I'm in, but only
+     if" one, because it is still money on the table. Red is reserved for
+     the Numbers Shark's deadpan joke offer, which only ever accompanies an
+     "I'm out", so red always means "this is the gag, not a real deal". */
   .offer.offer-good     { --offer-hue: var(--good); }
-  .offer.offer-warning  { --offer-hue: var(--warning); }
+  .offer.offer-warning  { --offer-hue: var(--good); }
   .offer.offer-critical { --offer-hue: var(--critical); }
   .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--offer-hue, var(--good)); }
   .offer-label {
