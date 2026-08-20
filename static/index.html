@@ -115,42 +115,50 @@
      one added per shark that ends up OUT, left circling for the rest of
      the session. */
 
+  /* Sized for the shark artwork; scale(--scale) in the swim keyframes
+     adds per-shark size variety. */
   .swim-shark {
     position: absolute;
     left: 0;
-    width: 130px;
-    opacity: 0.5;
+    width: 230px;
+    opacity: 0.62;
     z-index: 0;
     will-change: transform;
   }
-  .swim-shark.approach { opacity: 0.8; }
+  .swim-shark.approach { opacity: 0.85; }
   .swim-shark.dir-ltr { animation: swim-ltr var(--duration, 22s) linear var(--delay, 0s) infinite; }
   .swim-shark.dir-rtl { animation: swim-rtl var(--duration, 22s) linear var(--delay, 0s) infinite; }
 
+  /* The artwork faces right. Moving left-to-right therefore needs NO
+     mirror; moving right-to-left needs scaleX(-1). This is the opposite of
+     what the old symmetrical silhouette used. */
   @keyframes swim-ltr {
-    0%   { transform: translateX(-25vw) scale(var(--scale, 1)) scaleX(-1); }
-    100% { transform: translateX(125vw) scale(var(--scale, 1)) scaleX(-1); }
+    0%   { transform: translateX(-25vw) scale(var(--scale, 1)) scaleX(1); }
+    100% { transform: translateX(125vw) scale(var(--scale, 1)) scaleX(1); }
   }
   @keyframes swim-rtl {
-    0%   { transform: translateX(125vw) scale(var(--scale, 1)) scaleX(1); }
-    100% { transform: translateX(-25vw) scale(var(--scale, 1)) scaleX(1); }
+    0%   { transform: translateX(125vw) scale(var(--scale, 1)) scaleX(-1); }
+    100% { transform: translateX(-25vw) scale(var(--scale, 1)) scaleX(-1); }
   }
   @media (prefers-reduced-motion: reduce) {
     .swim-shark { display: none; }
   }
 
+  /* The swimmers are now the real transparent-PNG shark artwork, so there
+     is no silhouette, no clip-path and no compositing trick left: it is
+     just an <img> that bobs. Every earlier approach (SVG <image>, then
+     <foreignObject>, then CSS clip-path over a filled path) was working
+     around not having cut-out art. */
   .shark-bob {
-    width: 100%;
-    height: auto;
+    position: relative;
     display: block;
+    width: 100%;
     animation: shark-bob 2.6s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px var(--tint, transparent));
+    filter: drop-shadow(0 3px 10px rgba(0,0,0,0.55));
   }
+  .shark-art { width: 100%; height: auto; display: block; }
   @keyframes shark-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(-1.5deg); } }
   @media (prefers-reduced-motion: reduce) { .shark-bob { animation: none; } }
-
-  .shark-silhouette { fill: #050d16; stroke: var(--tint, transparent); stroke-width: 1.4; }
-  .shark-photo-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.94; display: block; }
 
   /* ---------- layout ---------- */
 
@@ -198,6 +206,19 @@
 
   h1 {
     margin: 0;
+  }
+  h1 .wordmark {
+    display: block;
+    width: min(420px, 72vw);
+    height: auto;
+    margin: 0 auto;
+    filter: drop-shadow(0 4px 18px rgba(0,0,0,0.6));
+  }
+  /* text stand-in, shown only if the wordmark image fails to load */
+  h1.logo-missing .wordmark { display: none; }
+  h1 .wordmark-text { display: none; }
+  h1.logo-missing .wordmark-text {
+    display: block;
     font-size: clamp(2.4rem, 7vw, 3.6rem);
     font-weight: 800;
     letter-spacing: -0.02em;
@@ -260,15 +281,6 @@
     color: var(--text-muted);
   }
 
-  .photo-credits {
-    margin: 40px 0 8px;
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    line-height: 1.7;
-  }
-  .photo-credits a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
-  .photo-credits a:hover { color: var(--text-secondary); }
   textarea:focus-visible {
     outline: none;
     border-color: var(--brand);
@@ -475,15 +487,20 @@
     flex-shrink: 0;
     box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent);
   }
+  /* the scaled-up artwork must be clipped to the circle, otherwise it
+     spills out as a rectangle over the chip label */
+  .avatar { overflow: hidden; }
   .avatar.avatar-sm { width: 26px; height: 26px; }
   .avatar.avatar-md { width: 38px; height: 38px; }
   .avatar img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
+    /* src is the pre-cropped head artwork, so a plain centred cover is
+       already correctly framed */
     object-fit: cover;
+    object-position: center;
     display: block;
-    filter: grayscale(0.1) contrast(1.08) saturate(1.1);
   }
   .avatar .avatar-tint {
     position: absolute;
@@ -491,7 +508,7 @@
     border-radius: 50%;
     background: var(--accent);
     mix-blend-mode: color;
-    opacity: 0.4;
+    opacity: 0.18;
     pointer-events: none;
   }
   .avatar .avatar-badge {
@@ -551,19 +568,24 @@
     margin-top: 14px;
     padding: 10px 14px;
     border-radius: 12px;
-    border: 1px dashed color-mix(in srgb, var(--accent, #9085e9) 55%, transparent);
-    background: color-mix(in srgb, var(--accent, #9085e9) 10%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--offer-hue, var(--good)) 55%, transparent);
+    background: color-mix(in srgb, var(--offer-hue, var(--good)) 12%, transparent);
     font-size: 0.9rem;
     line-height: 1.5;
   }
-  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--accent, #9085e9); }
+  /* An offer is tinted by the verdict it came with, not by the shark, so
+     "they're in and here's what they'll put in" always reads green. */
+  .offer.offer-good     { --offer-hue: var(--good); }
+  .offer.offer-warning  { --offer-hue: var(--warning); }
+  .offer.offer-critical { --offer-hue: var(--critical); }
+  .offer svg { width: 15px; height: 15px; flex-shrink: 0; align-self: center; color: var(--offer-hue, var(--good)); }
   .offer-label {
     flex-shrink: 0;
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--accent, #9085e9);
+    color: var(--offer-hue, var(--good));
   }
   .offer-text { color: var(--text-primary); }
 
@@ -669,8 +691,8 @@
 <div class="wrap" id="wrap">
   <header class="hero">
     <span class="kicker">Multi-agent idea &amp; pitch review</span>
-    <h1>THE TANK</h1>
-    <p class="sub">Pitch any idea, product, or project — good idea or bad idea, and why, no pricing or margins required — to five sharks who don't agree with each other. Five sharks, one at a time, each with their own take and their own offer on the table. No consensus, no committee, just five opinions and a lot of teeth.</p>
+    <h1><img class="wordmark" src="/static/img/logo.png" alt="The Tank" onerror="this.closest('h1').classList.add('logo-missing'); this.remove();"><span class="wordmark-text">THE TANK</span></h1>
+    <p class="sub">Pitch any idea, product, or project. Good idea or bad idea, and why, with no pricing or margins required. Five sharks weigh in one at a time, each with their own take and their own offer on the table. Four of them want you to win. One of them takes some convincing.</p>
   </header>
 
   <section class="pitch-panel">
@@ -694,15 +716,6 @@
   <div class="progress-track" id="progressTrack" hidden></div>
   <div class="board" id="board"></div>
 
-  <footer class="photo-credits">
-    Shark photos via Wikimedia Commons —
-    <a href="https://commons.wikimedia.org/wiki/File:Whale_shark_Maldives.jpg" target="_blank" rel="noopener">Whale Shark</a>,
-    <a href="https://commons.wikimedia.org/wiki/File:Nurse_Shark_4472.jpg" target="_blank" rel="noopener">Nurse Shark</a>,
-    <a href="https://commons.wikimedia.org/wiki/File:Shortfin_mako.jpg" target="_blank" rel="noopener">Shortfin Mako</a>,
-    <a href="https://commons.wikimedia.org/wiki/File:Bullshark_Beqa_Fiji_2007.jpg" target="_blank" rel="noopener">Bull Shark</a>,
-    <a href="https://commons.wikimedia.org/wiki/File:Guadalupe_Island_Great_White_Shark_Face_On.jpg" target="_blank" rel="noopener">Great White Shark</a>
-    — click through each for full license and photographer credit.
-  </footer>
 </div>
 
 <script>
@@ -717,36 +730,36 @@ const SHARK_META = {
     color: "var(--shark-people)",
     icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     species: "Whale Shark",
-    photo: "https://commons.wikimedia.org/wiki/Special:FilePath/Whale_shark_Maldives.jpg?width=300",
-    credit: "https://commons.wikimedia.org/wiki/File:Whale_shark_Maldives.jpg",
+    photo: "/static/img/people.png",
+    head: "/static/img/people-head.png",
   },
   brand_shark: {
     color: "var(--shark-brand)",
     icon: '<path d="M20.59 13.41 13.41 20.59a2 2 0 0 1-2.82 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.4" fill="currentColor" stroke="none"/>',
     species: "Nurse Shark",
-    photo: "https://commons.wikimedia.org/wiki/Special:FilePath/Nurse_Shark_4472.jpg?width=300",
-    credit: "https://commons.wikimedia.org/wiki/File:Nurse_Shark_4472.jpg",
+    photo: "/static/img/brand.png",
+    head: "/static/img/brand-head.png",
   },
   scale_shark: {
     color: "var(--shark-scale)",
     icon: '<polyline points="3,17 9,11 13,15 21,6"/><polyline points="21,12 21,6 15,6"/>',
     species: "Shortfin Mako Shark",
-    photo: "https://commons.wikimedia.org/wiki/Special:FilePath/Shortfin_mako.jpg?width=300",
-    credit: "https://commons.wikimedia.org/wiki/File:Shortfin_mako.jpg",
+    photo: "/static/img/scale.png",
+    head: "/static/img/scale-head.png",
   },
   product_shark: {
     color: "var(--shark-product)",
     icon: '<path d="M12 3 21 8 21 16 12 21 3 16 3 8Z"/><path d="M3 8 12 13 21 8"/><line x1="12" y1="13" x2="12" y2="21"/>',
     species: "Bull Shark",
-    photo: "https://commons.wikimedia.org/wiki/Special:FilePath/Bullshark_Beqa_Fiji_2007.jpg?width=300",
-    credit: "https://commons.wikimedia.org/wiki/File:Bullshark_Beqa_Fiji_2007.jpg",
+    photo: "/static/img/product.png",
+    head: "/static/img/product-head.png",
   },
   numbers_shark: {
     color: "var(--shark-numbers)",
     icon: '<line x1="4" y1="20" x2="4" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="20" y1="20" x2="20" y2="15"/>',
     species: "Great White Shark",
-    photo: "https://commons.wikimedia.org/wiki/Special:FilePath/Guadalupe_Island_Great_White_Shark_Face_On.jpg?width=300",
-    credit: "https://commons.wikimedia.org/wiki/File:Guadalupe_Island_Great_White_Shark_Face_On.jpg",
+    photo: "/static/img/numbers.png",
+    head: "/static/img/numbers-head.png",
   },
 };
 
@@ -772,7 +785,7 @@ function iconSvg(inner, extra = "") {
 function avatarHtml(key, size = "md") {
   const meta = SHARK_META[key];
   return `<span class="avatar avatar-${size}" style="--accent:${meta.color}">
-    <img src="${meta.photo}" alt="${meta.species}" loading="lazy" referrerpolicy="no-referrer"
+    <img src="${meta.head || meta.photo}" alt="${meta.species}" loading="lazy" referrerpolicy="no-referrer"
          onerror="this.parentElement.classList.add('avatar-fallback'); this.remove();">
     <span class="avatar-tint" aria-hidden="true"></span>
     <span class="avatar-badge">${iconSvg(meta.icon)}</span>
@@ -784,12 +797,16 @@ function classifyVerdict(verdictText) {
   if (t.includes("but only if") || t.includes("conditional")) {
     return { level: "warning", label: "CONDITIONAL" };
   }
-  // "circling" replaced "I'm out" as the least-enthusiastic verdict. It
-  // still maps to the "critical" LEVEL on purpose, because that's what
-  // drives the fun drama (bloody water, bass sting, screen shake) and the
-  // drama was never the problem. Only the wording was. "I'm out" is kept
-  // as a legacy fallback in case a model ignores the prompt and says it.
-  if (t.includes("circling") || t.includes("i'm out") || t.includes("im out")) {
+  // Two distinct least-enthusiastic verdicts now, because the sharks run
+  // on two tracks. The four supportive sharks can only get as cool as
+  // "still circling" (a not-yet). The Numbers Shark is the only one that
+  // can actually say "I'm out." Both map to the "critical" LEVEL, since
+  // that's what drives the fun drama (bloody water, bass sting, screen
+  // shake) and the drama was never the problem, only the wording was.
+  if (t.includes("i'm out") || t.includes("im out")) {
+    return { level: "critical", label: "OUT" };
+  }
+  if (t.includes("circling")) {
     return { level: "critical", label: "CIRCLING" };
   }
   return { level: "good", label: "IN" };
@@ -818,24 +835,14 @@ function spawnBubbles() {
 
 // ---------- swimming sharks ----------
 
-// Same shark-body shape as before, but now used two ways: as a plain
-// filled+stroked fallback path (rendered first, underneath), and as an
-// SVG clipPath so a real photo can be cut out to this exact silhouette
-// instead of painted as a flat tinted shape. The fallback path's own
-// stroke straddles the clip boundary, so it still reads as a colored
-// outline around the photo cutout — and if a photo hotlink ever fails to
-// load, there's nothing extra to fall back to in JS: the flat shape
-// underneath is just what's left visible.
-const SHARK_CLIP_D = `M2 55 C10 30 40 15 90 15 C130 15 160 25 190 40 C170 40 155 45 148 55
-  C158 58 172 62 190 62 C165 65 140 63 128 55 C105 75 55 82 25 68 C12 62 5 60 2 55 Z
-  M82 16 L96 -18 L110 17 Z
-  M68 50 L50 74 L86 58 Z`;
-
-let swimClipCounter = 0;
 
 function clearSwimmers() {
   document.querySelectorAll(".swim-shark").forEach((el) => el.remove());
 }
+
+// If a shark somehow has no artwork mapped, fall back to the People
+// Shark art rather than rendering a broken image icon.
+const SHARK_ART_FALLBACK = SHARK_META.people_shark.photo;
 
 function spawnSwimmingShark(idx, colorVar, { approach = false, key = null } = {}) {
   const bg = document.getElementById("oceanBg");
@@ -845,31 +852,18 @@ function spawnSwimmingShark(idx, colorVar, { approach = false, key = null } = {}
   const top = 6 + ((idx * 19) % 68);
   const duration = approach ? 7 : 20 + ((idx * 7) % 16);
   const delay = approach ? 0 : -((idx * 5) % duration);
-  const scale = 0.75 + ((idx * 11) % 45) / 100;
+  const scale = 0.85 + ((idx * 11) % 45) / 100;
   el.style.top = top + "%";
   el.style.setProperty("--duration", duration + "s");
   el.style.setProperty("--delay", delay + "s");
   el.style.setProperty("--scale", scale);
 
   const photo = key && SHARK_META[key] ? SHARK_META[key].photo : null;
-  const clipId = `shark-clip-${swimClipCounter++}`;
 
-  // Deliberately NOT a native SVG <image href="..."> here. In testing, a
-  // plain <img> (as used for the chip/card avatars, which do load) proved
-  // far more reliable than an SVG <image> inserted via innerHTML, so this
-  // reuses that exact same working <img> tag, wrapped in a <foreignObject>
-  // so it still gets the SVG viewBox's automatic scaling and can still be
-  // clipped to the shark silhouette via the same clipPath shape.
   el.innerHTML = `
-    <svg class="shark-bob" viewBox="0 0 200 100" style="--tint:${colorVar}">
-      <path class="shark-silhouette" d="${SHARK_CLIP_D}"/>${photo ? `
-      <clipPath id="${clipId}"><path d="${SHARK_CLIP_D}"/></clipPath>
-      <foreignObject x="-20" y="-20" width="240" height="140" clip-path="url(#${clipId})">
-        <img xmlns="http://www.w3.org/1999/xhtml" class="shark-photo-img" src="${photo}" alt=""
-             referrerpolicy="no-referrer"
-             onerror="console.warn('[swim-shark] photo failed to load, falling back to silhouette:', this.src); this.remove();">
-      </foreignObject>` : ""}
-    </svg>`;
+    <div class="shark-bob">
+      <img class="shark-art" src="${photo || SHARK_ART_FALLBACK}" alt="" draggable="false">
+    </div>`;
 
   bg.appendChild(el);
   return el;
@@ -1119,17 +1113,21 @@ async function fillCard(key, text) {
   bodyEl.classList.remove("thinking-text");
   await typewriter(bodyEl, body);
 
+  // Classify BEFORE rendering the offer so the offer box can be tinted by
+  // the verdict it belongs to: green for an "I'm in" offer, red for the
+  // Numbers Shark's deadpan consolation prize on an "I'm out".
+  let level = "good", label = "IN";
+  if (verdictRaw) ({ level, label } = classifyVerdict(verdictRaw));
+
   if (offerRaw) {
     const offerDiv = document.createElement("div");
-    offerDiv.className = "offer";
+    offerDiv.className = `offer offer-${level}`;
     offerDiv.innerHTML = `${iconSvg(OFFER_ICON)}<span class="offer-label">OFFER</span><span class="offer-text"></span>`;
     card.appendChild(offerDiv);
     await typewriter(offerDiv.querySelector(".offer-text"), offerRaw, 12);
   }
 
-  let level = "good", label = "IN";
   if (verdictRaw) {
-    ({ level, label } = classifyVerdict(verdictRaw));
     const verdictDiv = document.createElement("div");
     verdictDiv.className = `verdict ${level}`;
     verdictDiv.innerHTML = `${iconSvg(VERDICT_ICONS[level])}<span>${label}</span><span class="verdict-text">— ${verdictRaw}</span>`;

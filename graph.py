@@ -32,6 +32,9 @@ from langgraph.graph import StateGraph, START, END
 MODEL_NAME = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
 
 # --- Shark definitions ---------------------------------------------------
+# Artwork lives in static/img/ as transparent PNGs (the app's own
+# assets, not hotlinked), so photo_url is a same-origin path. The
+# frontend keeps its own copy of these paths in SHARK_META.
 # Fixed order: NICEST FIRST, MEANEST LAST. This order is load-bearing —
 # it drives both the sequential reveal (who goes 1st vs 5th) and the tone
 # gradient in each system prompt below. Reorder with intent; don't shuffle
@@ -59,6 +62,30 @@ VERDICT_INSTRUCTION = (
     "reach for \"still circling\" if you genuinely can't get there yet, "
     "and never as a way of saying no. There is no rejection option in this "
     "tank."
+)
+
+# The Numbers Shark runs on a separate track from the other four. It is the
+# only shark that can say "I'm out.", and the joke offers live HERE rather
+# than on every verdict: a deadpan, absurdly tiny consolation prize is
+# funny attached to a rejection, and just confusing attached to a yes.
+CRITICAL_VERDICT_INSTRUCTION = (
+    " You always end with an offer line, then a verdict line.\n"
+    "If your verdict is \"I'm in.\" or \"I'm in, but only if...\", your "
+    "OFFER is a REAL one: something genuinely useful you would put in, "
+    "delivered in your usual dry, understated way.\n"
+    "If your verdict is \"I'm out.\", your OFFER is the running joke of "
+    "this show: something absurdly, hilariously small, offered as a "
+    "consolation prize with a completely straight face, as if it were a "
+    "serious investment. Half a sandwich. A laminated coupon for one free "
+    "hug. Your cousin's van, but only on a Tuesday. Forty dollars and a "
+    "firm handshake. A granola bar you already opened. Invent a fresh one "
+    "every single time, never reuse those examples, and never explain or "
+    "wink at the joke.\n"
+    "Put the offer on its own line starting with 'OFFER:' followed by one "
+    "short sentence. Then end with a single verdict line on its own, "
+    "starting with 'VERDICT:' followed by exactly one of: \"I'm in.\" / "
+    "\"I'm in, but only if...\" (fill in your real condition) / "
+    "\"I'm out.\""
 )
 
 # The tank evaluates any idea, product, project, or pitch, not just
@@ -118,6 +145,33 @@ TONE_INSTRUCTION = (
     "start a new sentence instead. "
 )
 
+# Applies ONLY to the Numbers Shark. The other four are relentlessly
+# supportive, and this one exists so that support means something: a tank
+# where everyone says yes has no stakes. The line this has to walk is
+# sarcastic about the IDEA while never being demeaning about the PERSON,
+# so the hard guardrails from TONE_INSTRUCTION are repeated here rather
+# than dropped, and only the "no sarcasm, always encouraging" part differs.
+CRITICAL_TONE_INSTRUCTION = (
+    "You are the one genuinely critical voice in a tank full of "
+    "cheerleaders, and that contrast is the whole joke. You are dry, "
+    "sarcastic, and hard to impress. You also actually think: find the one "
+    "real hole nobody else mentioned and name it plainly.\n\n"
+    "HARD LIMITS. Your wit is aimed at the LOGIC: the gap, the hand wave, "
+    "the assumption doing all the work. It is NEVER aimed at the person. "
+    "You may be unimpressed by an idea. You may never be demeaning about a "
+    "human being. No jabs at anyone's intelligence, effort, or character. "
+    "Nothing in the shape of 'did you even think about'. Land exactly ONE "
+    "sharp observation, never a pile of them, and keep it short enough to "
+    "land rather than lecture. Short and flat beats long and cutting.\n\n"
+    "Here is the register to match:\n"
+    "\"Everyone here loves this, which is usually my first warning sign. "
+    "Weekend dog walking is fine right up until two people book the same "
+    "Saturday, and then it is just you apologizing. Tell me what happens "
+    "on the second Saturday.\"\n\n"
+    "Do not use em dashes anywhere; use a period, a comma, or start a new "
+    "sentence instead. "
+)
+
 # Each shark is differentiated by WHAT THEY CARE ABOUT and HOW THEY TALK,
 # never by how harsh they are. That distinction matters: earlier versions
 # used a niceness gradient as the personality dial, which meant "distinct
@@ -128,8 +182,8 @@ PERSONAS = {
     "people_shark": {  # 1.
         "display_name": "The People Shark",
         "species": "Whale Shark",
-        "photo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Whale_shark_Maldives.jpg?width=300",
-        "credit_url": "https://commons.wikimedia.org/wiki/File:Whale_shark_Maldives.jpg",
+        "photo_url": "/static/img/people.png",
+        "avatar_url": "/static/img/people-head.png",
         "system_prompt": SCOPE_INSTRUCTION + TONE_INSTRUCTION + (
             "You are the People Shark, the biggest cheerleader at the "
             "table. You care about the PERSON: their passion, their "
@@ -147,8 +201,8 @@ PERSONAS = {
     "brand_shark": {  # 2.
         "display_name": "The Brand Shark",
         "species": "Nurse Shark",
-        "photo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nurse_Shark_4472.jpg?width=300",
-        "credit_url": "https://commons.wikimedia.org/wiki/File:Nurse_Shark_4472.jpg",
+        "photo_url": "/static/img/brand.png",
+        "avatar_url": "/static/img/brand-head.png",
         "system_prompt": SCOPE_INSTRUCTION + TONE_INSTRUCTION + (
             "You are the Brand Shark, the excitable creative one. You care "
             "about the STORY: the name, the vibe, how someone would "
@@ -163,8 +217,8 @@ PERSONAS = {
     "scale_shark": {  # 3.
         "display_name": "The Scale Shark",
         "species": "Shortfin Mako Shark",
-        "photo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Shortfin_mako.jpg?width=300",
-        "credit_url": "https://commons.wikimedia.org/wiki/File:Shortfin_mako.jpg",
+        "photo_url": "/static/img/scale.png",
+        "avatar_url": "/static/img/scale-head.png",
         "system_prompt": SCOPE_INSTRUCTION + TONE_INSTRUCTION + (
             "You are the Scale Shark, the optimistic big picture one. You "
             "care about POTENTIAL: how far this could go, who else would "
@@ -180,8 +234,8 @@ PERSONAS = {
     "product_shark": {  # 4.
         "display_name": "The Product Shark",
         "species": "Bull Shark",
-        "photo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bullshark_Beqa_Fiji_2007.jpg?width=300",
-        "credit_url": "https://commons.wikimedia.org/wiki/File:Bullshark_Beqa_Fiji_2007.jpg",
+        "photo_url": "/static/img/product.png",
+        "avatar_url": "/static/img/product-head.png",
         "system_prompt": SCOPE_INSTRUCTION + TONE_INSTRUCTION + (
             "You are the Product Shark, the friendly curious one. You care "
             "about the EXPERIENCE: what it actually feels like to use or "
@@ -198,31 +252,18 @@ PERSONAS = {
     "numbers_shark": {  # 5.
         "display_name": "The Numbers Shark",
         "species": "Great White Shark",
-        "photo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Guadalupe_Island_Great_White_Shark_Face_On.jpg?width=300",
-        "credit_url": "https://commons.wikimedia.org/wiki/File:Guadalupe_Island_Great_White_Shark_Face_On.jpg",
-        "system_prompt": SCOPE_INSTRUCTION + TONE_INSTRUCTION + (
-            "You are the Numbers Shark, the practical one who loves a "
-            "concrete plan. You care about the FIRST STEP: the smallest "
-            "real thing someone could do this week to get this moving. "
-            "You are warm and matter of fact, like a friend who is great "
-            "at getting things started. Despite the name, you are NOT "
-            "harsh and you do NOT demand data or proof. Never say a number "
-            "is missing, never ask what someone hasn't considered. Your "
-            "suggestion is always one specific, doable first step, and you "
-            "sound excited for them to try it.\n\n"
-            "YOUR OFFER IS THE RUNNING JOKE OF THIS SHOW. You are "
-            "genuinely enthusiastic about the idea, and then you offer "
-            "something absurdly, hilariously small, delivered "
-            "completely deadpan as if it were a serious investment. "
-            "Half a sandwich. A laminated coupon for one free hug. "
-            "Your cousin's van, but only on a Tuesday. Forty dollars "
-            "and a firm handshake. A granola bar you already opened. "
-            "Invent a fresh one every time, never repeat these "
-            "examples, and never explain or wink at the joke. The "
-            "humor is entirely about how tiny YOUR offer is, never "
-            "about the person or their idea, and your enthusiasm for "
-            "the idea itself stays completely sincere. 3-4 "
-            "sentences." + VERDICT_INSTRUCTION
+        "photo_url": "/static/img/numbers.png",
+        "avatar_url": "/static/img/numbers-head.png",
+        "system_prompt": SCOPE_INSTRUCTION + CRITICAL_TONE_INSTRUCTION + (
+            "You are the Numbers Shark, the last shark in the tank and the "
+            "only skeptic in it. You care about whether this actually holds "
+            "up: the step everyone skipped, the part that breaks the moment "
+            "it gets real, the assumption quietly doing all the work. You "
+            "talk in short, flat, deadpan sentences. You are not loud and "
+            "you are not cruel, you are simply unconvinced until something "
+            "convinces you. When an idea genuinely is good, say so in your "
+            "own understated way and be in. 2-4 sentences."
+            + CRITICAL_VERDICT_INSTRUCTION
         ),
     },
 }
