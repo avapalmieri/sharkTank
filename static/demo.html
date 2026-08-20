@@ -889,11 +889,11 @@ const MOCK_PERSONAS = {
 // topic is a general idea, matching the tank's any-idea-or-pitch scope
 // (see the textarea default above).
 const MOCK_FEEDBACK = {
-  "The People Shark": "You already know every dog and every owner on your street, and that kind of built in trust is the hardest part of this whole thing to fake. What would make this even stronger is letting yourself charge what it's actually worth from day one, because people pay for someone they trust with their dog. You are exactly the right person to run this.\nOFFER: $40,000 for 8%, because I'm betting on you more than the idea.\nVERDICT: I'm in.",
-  "The Brand Shark": "Weekend pop up dog walking is such a fun little concept, it already sounds like something people would tell their neighbors about. Give it a name with some personality, something like The Saturday Pack, and put it on a bright card at the vet's office. There's real charm here and I want in on it.\nOFFER: $60,000 for 15%, and I'll name it and design the whole look myself.\nVERDICT: I'm in.",
-  "The Scale Shark": "The neighborhood trust you've built is genuinely valuable, and I don't want to talk you out of that. What stops me is that this caps out at however many Saturdays one person has, and I haven't heard how it grows past you. Come back with a second walker trained and booked and I'm right back at this table.\nVERDICT: I'm out.",
-  "The Product Shark": "The photo update idea is the part I keep thinking about, that's the kind of small detail owners actually screenshot and send to friends. My bar here is high and what I need is proof people come back a second and third time, not just try it once. Show me that and this gets a lot more interesting to me.\nOFFER: $75,000 for 18%, half released once you've walked fifty dogs.\nVERDICT: I'm in, but only if you can show me repeat bookings.",
-  "The Numbers Shark": "Everyone here loves this, which is usually my first warning sign. Weekend dog walking is fine right up until two people book the same Saturday, and then it is just you apologizing to someone holding a leash. Tell me what happens on the second Saturday.\nOFFER: A mouldy sandwich for one hundred percent of the business.\nVERDICT: I'm out.",
+  "The People Shark": "You already know every dog and every owner on your street, and that is the part of this most people spend a year trying to buy. Charge what it's worth from day one. People pay for someone they trust with their dog, and that is you.\nOFFER: $40,000 for 8%, because I'm betting on you more than the idea.\nVERDICT: I'm in.",
+  "The Brand Shark": "The Saturday Pack. That is what I would call it, and I would put it on a bright yellow card at the vet's front desk. Dog people talk to each other constantly, so a name they can repeat is worth more than any advertising you could buy.\nOFFER: $60,000 for 15%, and I'll design the card myself.\nVERDICT: I'm in.",
+  "The Scale Shark": "Weekends prove it. Weekdays double it. The ceiling is how many Saturdays one person has, so show me a second walker and I'm right back at this table.\nVERDICT: I'm out.",
+  "The Product Shark": "What does the handoff actually look like the first time, when someone you have never met opens the door and hands you a leash? And what makes them book you again the week after instead of forgetting? Show me that second booking and I am very interested.\nOFFER: $75,000 for 18%, half released once you've walked fifty dogs.\nVERDICT: I'm in, but only if you can show me repeat bookings.",
+  "The Numbers Shark": "Two people book the same Saturday and it is just you apologizing to someone holding a leash. Tell me what happens then.\nVERDICT: I'm out.",
 };
 
 const OFFER_ICON = '<path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><line x1="12" y1="21" x2="12" y2="7"/><path d="M12 7A2.5 2.5 0 1 1 9.5 4.5 2.5 2.5 0 0 1 12 7Z"/><path d="M12 7a2.5 2.5 0 1 0 2.5-2.5A2.5 2.5 0 0 0 12 7Z"/>';
@@ -1360,7 +1360,9 @@ function renderOfferRecap() {
 
 function tallyLabel(tally) {
   if (tally.total === 0) return null;
-  if (tally.critical > tally.total / 2) return { type: "rejected", label: "STILL CIRCLING" };
+  // "STILL CIRCLING" dates from when no shark could actually reject a
+  // pitch. They can now, so the stamp should say what happened.
+  if (tally.critical > tally.total / 2) return { type: "rejected", label: "NO DEAL" };
   if (tally.good > tally.total / 2) return { type: "approved", label: "APPROVED" };
   return { type: "mixed", label: "MIXED VERDICT" };
 }
