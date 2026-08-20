@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.git/
+push_to_github.sh
+push_to_github.ps1
