@@ -1020,15 +1020,8 @@ async function fillCard(key, text) {
   if (!card) return "good";
   card.classList.remove("thinking");
   const verdictIdx = text.indexOf("VERDICT:");
-  let body = verdictIdx === -1 ? text : text.slice(0, verdictIdx).trim();
+  const body = verdictIdx === -1 ? text : text.slice(0, verdictIdx).trim();
   const verdictRaw = verdictIdx === -1 ? "" : text.slice(verdictIdx + "VERDICT:".length).trim();
-
-  // Defensive fallback — see static/index.html for the full explanation.
-  // Kept in sync here so the demo's rendering logic matches the real app.
-  if (!body) {
-    console.warn(`[shark:${key}] no reasoning text found before "VERDICT:" — showing raw response instead. Raw text:`, text);
-    body = text.trim() || "(This shark responded with nothing at all.)";
-  }
 
   const bodyEl = card.querySelector(".body");
   bodyEl.classList.remove("thinking-text");
