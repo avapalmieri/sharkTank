@@ -93,16 +93,19 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 1.6s ease;
+    /* Deep arterial red rather than a bright one, plus a dark wash, so
+       each rejection makes the tank murkier as well as bloodier. */
     background:
-      radial-gradient(90% 60% at 50% 105%, rgba(200,10,10,0.65) 0%, rgba(130,0,0,0.3) 45%, transparent 75%),
-      radial-gradient(55% 35% at 15% 15%, rgba(180,0,0,0.28), transparent 70%),
-      radial-gradient(55% 35% at 85% 25%, rgba(180,0,0,0.22), transparent 70%);
+      linear-gradient(180deg, rgba(18,0,2,0.55) 0%, rgba(30,0,4,0.35) 40%, rgba(46,0,6,0.7) 100%),
+      radial-gradient(95% 65% at 50% 106%, rgba(122,0,6,0.9) 0%, rgba(64,0,4,0.55) 45%, transparent 78%),
+      radial-gradient(55% 35% at 15% 15%, rgba(88,0,4,0.42), transparent 70%),
+      radial-gradient(55% 35% at 85% 25%, rgba(88,0,4,0.36), transparent 70%);
   }
-  body.blood-1 .blood-overlay { opacity: 0.18; }
-  body.blood-2 .blood-overlay { opacity: 0.34; }
-  body.blood-3 .blood-overlay { opacity: 0.5; }
-  body.blood-4 .blood-overlay { opacity: 0.64; }
-  body.blood-5 .blood-overlay { opacity: 0.78; }
+  body.blood-1 .blood-overlay { opacity: 0.24; }
+  body.blood-2 .blood-overlay { opacity: 0.45; }
+  body.blood-3 .blood-overlay { opacity: 0.64; }
+  body.blood-4 .blood-overlay { opacity: 0.82; }
+  body.blood-5 .blood-overlay { opacity: 1; }
 
   /* Sized for the shark artwork; scale(--scale) in the swim keyframes
      adds per-shark size variety. */
@@ -596,6 +599,29 @@
   }
   .offer-text { color: var(--text-primary); }
 
+  /* ---------- seafloor ---------- */
+  /* Decorative reef band closing out the page. Sits in normal flow at the
+     very bottom rather than fixed to the viewport, so it never scrolls
+     underneath the cards and can never hurt text contrast. */
+  /* Full bleed, so it sits outside .wrap's max-width rather than inside it.
+     Background-size 100% auto scales the art to the exact viewport width
+     with no distortion, and the fixed height crops the empty space above
+     the coral rather than squashing it. */
+  .reef {
+    /* .wrap carries z-index 1; now that the reef lives outside it, it needs
+       its own or the fixed ocean and blood layers paint straight over it. */
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: clamp(88px, 17vw, 290px);
+    margin-top: 46px;
+    background: url("img/reef.png") bottom center / 100% auto no-repeat;
+    pointer-events: none;
+  }
+  @media (max-width: 720px) {
+    .reef { margin-top: 28px; }
+  }
+
   /* ---------- conditional deal buttons ---------- */
   .deal-choice {
     display: flex;
@@ -837,6 +863,8 @@
   <div class="board" id="board"></div>
 
 </div>
+
+<div class="reef" aria-hidden="true"></div>
 
 <script>
 // Mocked persona list + sample responses, standing in for the real
