@@ -616,6 +616,19 @@
   }
   .offer-text { color: var(--text-primary); }
 
+  /* ---------- site footer ---------- */
+  .site-footer {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 26px 20px 40px;
+    text-align: center;
+    font-size: 0.74rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
   /* ---------- seafloor ---------- */
   /* Full bleed and never cropped: aspect-ratio matches the artwork exactly,
      so background-size 100% 100% scales it without distortion and without
@@ -878,6 +891,13 @@
 </div>
 
 <div class="reef" aria-hidden="true"></div>
+
+<footer class="site-footer">
+  The Tank is an original fan project, not affiliated with, endorsed by, or connected to
+  Shark Tank, Sony Pictures Television, or ABC. All five sharks are fictional characters
+  and are not based on any real person. For entertainment and brainstorming only, not
+  investment, financial, or legal advice.
+</footer>
 
 <script>
 const API_BASE = ""; // same-origin; change if hosting frontend separately
