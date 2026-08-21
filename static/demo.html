@@ -599,6 +599,22 @@
   }
   .offer-text { color: var(--text-primary); }
 
+  /* ---------- seafloor ---------- */
+  /* Full bleed and never cropped: aspect-ratio matches the artwork exactly,
+     so background-size 100% 100% scales it without distortion and without
+     clipping the tall seaweed at either end. Deliberately no max-height,
+     since capping the height is what would cut the seaweed off. */
+  .reef {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    aspect-ratio: 1600 / 421;
+    margin-top: 46px;
+    background: url("img/reef.png") bottom center / 100% 100% no-repeat;
+    pointer-events: none;
+  }
+  @media (max-width: 720px) { .reef { margin-top: 28px; } }
+
   /* ---------- conditional deal buttons ---------- */
   .deal-choice {
     display: flex;
@@ -820,7 +836,7 @@
 
   <section class="pitch-panel">
     <label class="field-label" for="topic">Your pitch</label>
-    <textarea id="topic">I want to start a weekend pop-up dog-walking service in my neighborhood.</textarea>
+    <textarea id="topic" maxlength="1200">I want to start a weekend pop-up dog-walking service in my neighborhood.</textarea>
     <p class="disclaimer">Any idea, product, or pitch. For entertainment and brainstorming, not professional advice.</p>
 
     <div class="field-label" style="margin-top: 22px;">Meet the sharks</div>
@@ -841,6 +857,7 @@
 
 </div>
 
+<div class="reef" aria-hidden="true"></div>
 
 <script>
 // Mocked persona list + sample responses, standing in for the real
@@ -1189,6 +1206,7 @@ const VERDICT_STATE = {};   // key -> "good" | "warning" | "critical"
 const OFFERS = {};          // key -> offer text, if the shark made one
 
 function resetDealState() {
+  runComplete = false;
   Object.keys(VERDICT_STATE).forEach((k) => delete VERDICT_STATE[k]);
   Object.keys(OFFERS).forEach((k) => delete OFFERS[k]);
   const old = document.getElementById("recap");
@@ -1216,16 +1234,17 @@ function syncSwimmers() {
   });
 }
 
+// The stamp is the final word on a run, so it must not appear while sharks
+// are still arriving. Resolving a conditional before the last shark has
+// answered would otherwise stamp an outcome that is not final yet.
+let runComplete = false;
+
 function recomputeOutcome({ restamp = false } = {}) {
   const t = currentTally();
   bumpBloodLevel(t.critical);
   syncSwimmers();
   renderOfferRecap();
-  if (restamp) {
-    const existing = document.querySelector(".stamp-overlay");
-    if (existing) existing.remove();
-    if (t.total > 0) showStamp(t);
-  }
+  if (restamp && runComplete && t.total > 0) showStamp(t);
 }
 
 // ---------- accepting or refusing a conditional ----------
@@ -1392,6 +1411,10 @@ function tallyLabel(tally) {
 function showStamp(tally) {
   const result = tallyLabel(tally);
   if (!result) return;
+  // Always clear any existing stamp first. Without this, resolving a
+  // conditional mid-run stamps once, and the end of the run stamps again,
+  // leaving two overlaid on top of each other.
+  document.querySelectorAll(".stamp-overlay").forEach((el) => el.remove());
   const overlay = document.createElement("div");
   overlay.className = `stamp-overlay stamp-${result.type}`;
   overlay.innerHTML = `<div class="stamp">${result.label}</div>`;
@@ -1566,6 +1589,7 @@ async function ask() {
   }
 
   statusEl.textContent = "";
+  runComplete = true;
   const finalTally = currentTally();
   if (finalTally.total > 0) showStamp(finalTally);
   renderOfferRecap();
